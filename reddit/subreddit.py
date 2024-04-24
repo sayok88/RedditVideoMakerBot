@@ -73,8 +73,8 @@ def get_subreddit_threads(POST_ID: str):
         submission = reddit.submission(id=POST_ID)
 
     elif (
-        settings.config["reddit"]["thread"]["post_id"]
-        and len(str(settings.config["reddit"]["thread"]["post_id"]).split("+")) == 1
+            settings.config["reddit"]["thread"]["post_id"]
+            and len(str(settings.config["reddit"]["thread"]["post_id"]).split("+")) == 1
     ):
         submission = reddit.submission(id=settings.config["reddit"]["thread"]["post_id"])
     elif settings.config["ai"]["ai_similarity_enabled"]:  # ai sorting based on comparison
@@ -100,7 +100,9 @@ def get_subreddit_threads(POST_ID: str):
         exit()
 
     submission = check_done(submission)  # double-checking
-
+    if len(submission.selftext) < 1000:
+        print_step(submission.selftext)
+        raise Exception("Short Story try again!!!!")
     upvotes = submission.score
     ratio = submission.upvote_ratio * 100
     num_comments = submission.num_comments
@@ -122,39 +124,42 @@ def get_subreddit_threads(POST_ID: str):
     content["thread_id"] = submission.id
     content["is_nsfw"] = submission.over_18
     content["comments"] = []
+    for top_level_comment in submission.comments:
+        if isinstance(top_level_comment, MoreComments):
+            continue
+        if top_level_comment.body in ["[removed]", "[deleted]"]:
+            continue  # # see https://github.com/JasonLovesDoggo/RedditVideoMakerBot/issues/78
+        if not top_level_comment.stickied:
+            sanitised = sanitize_text(top_level_comment.body)
+            if not sanitised or sanitised == " ":
+                continue
+            if len(top_level_comment.body) <= int(
+                    settings.config["reddit"]["thread"]["max_comment_length"]
+            ):
+                if len(top_level_comment.body) >= int(
+                        settings.config["reddit"]["thread"]["min_comment_length"]
+                ):
+                    if (
+                            top_level_comment.author is not None
+                            and sanitize_text(top_level_comment.body) is not None
+                    ):  # if errors occur with this change to if not.
+                        content["comments"].append(
+                            {
+                                "comment_body": top_level_comment.body,
+                                "comment_url": top_level_comment.permalink,
+                                "comment_id": top_level_comment.id,
+                                "up": top_level_comment.ups
+                            }
+                        )
+    content["comments"] = sorted(content["comments"], key=lambda x: x["up"], reverse=True)
+    if len(content["comments"]) > 20:
+        content["comments"] = content["comments"][:20]
+
     if settings.config["settings"]["storymode"]:
         if settings.config["settings"]["storymodemethod"] == 1:
             content["thread_post"] = posttextparser(submission.selftext)
         else:
             content["thread_post"] = submission.selftext
-    else:
-        for top_level_comment in submission.comments:
-            if isinstance(top_level_comment, MoreComments):
-                continue
-
-            if top_level_comment.body in ["[removed]", "[deleted]"]:
-                continue  # # see https://github.com/JasonLovesDoggo/RedditVideoMakerBot/issues/78
-            if not top_level_comment.stickied:
-                sanitised = sanitize_text(top_level_comment.body)
-                if not sanitised or sanitised == " ":
-                    continue
-                if len(top_level_comment.body) <= int(
-                    settings.config["reddit"]["thread"]["max_comment_length"]
-                ):
-                    if len(top_level_comment.body) >= int(
-                        settings.config["reddit"]["thread"]["min_comment_length"]
-                    ):
-                        if (
-                            top_level_comment.author is not None
-                            and sanitize_text(top_level_comment.body) is not None
-                        ):  # if errors occur with this change to if not.
-                            content["comments"].append(
-                                {
-                                    "comment_body": top_level_comment.body,
-                                    "comment_url": top_level_comment.permalink,
-                                    "comment_id": top_level_comment.id,
-                                }
-                            )
 
     print_substep("Received subreddit threads Successfully.", style="bold green")
     return content

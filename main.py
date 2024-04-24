@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+import json
+import os
+
 import math
 import sys
 from os import name
@@ -43,15 +46,27 @@ print_markdown(
     "### Thanks for using this tool! Feel free to contribute to this project on GitHub! If you have any questions, feel free to join my Discord server or submit a GitHub issue. You can find solutions to many common problems in the documentation: https://reddit-video-maker-bot.netlify.app/"
 )
 checkversion(__VERSION__)
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 def main(POST_ID=None) -> None:
     global redditid, reddit_object
     reddit_object = get_subreddit_threads(POST_ID)
+    with open(f"{reddit_object['thread_id']}.json", 'w') as f:
+        json.dump(reddit_object, f)
     redditid = id(reddit_object)
-    length, number_of_comments = save_text_to_mp3(reddit_object)
-    length = math.ceil(length)
+    length, number_of_comments, post_numbers = save_text_to_mp3(reddit_object)
+    if number_of_comments > 0:
+        number_of_comments += 1
+    if post_numbers > 0:
+        post_numbers += 1
+    length = math.ceil(length)  # 275, 15
+    # settings.config["settings"]["storymode"]
     get_screenshots_of_reddit_posts(reddit_object, number_of_comments)
+    # length, number_of_comments, post_numbers = 275, 16, 13
+    # with open("1cb414z.json", 'r') as f:
+    #     reddit_object = json.load(f)
+
     bg_config = {
         "video": get_background_config("video"),
         "audio": get_background_config("audio"),
@@ -59,7 +74,7 @@ def main(POST_ID=None) -> None:
     download_background_video(bg_config["video"])
     download_background_audio(bg_config["audio"])
     chop_background(bg_config, length, reddit_object)
-    make_final_video(number_of_comments, length, reddit_object, bg_config)
+    make_final_video(number_of_comments, post_numbers, length, reddit_object, bg_config)
 
 
 def run_many(times) -> None:
@@ -94,8 +109,8 @@ if __name__ == "__main__":
     config is False and sys.exit()
 
     if (
-        not settings.config["settings"]["tts"]["tiktok_sessionid"]
-        or settings.config["settings"]["tts"]["tiktok_sessionid"] == ""
+            not settings.config["settings"]["tts"]["tiktok_sessionid"]
+            or settings.config["settings"]["tts"]["tiktok_sessionid"] == ""
     ) and config["settings"]["tts"]["voice_choice"] == "tiktok":
         print_substep(
             "TikTok voice requires a sessionid! Check our documentation on how to obtain one.",

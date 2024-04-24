@@ -15,7 +15,7 @@ from utils.console import print_step, print_substep
 from utils.voice import sanitize_text
 
 DEFAULT_MAX_LENGTH: int = (
-    50  # Video length variable, edit this on your own risk. It should work, but it's not supported
+    300  # Video length variable, edit this on your own risk. It should work, but it's not supported
 )
 
 
@@ -66,7 +66,7 @@ class TTSEngine:
             comment["comment_body"] = comment["comment_body"].replace(". . ", ".")
             comment["comment_body"] = re.sub(r'\."\.', '".', comment["comment_body"])
 
-    def run(self) -> Tuple[int, int]:
+    def run(self) -> Tuple[int, int, int]:
         Path(self.path).mkdir(parents=True, exist_ok=True)
         print_step("Saving Text to MP3 files...")
 
@@ -74,7 +74,7 @@ class TTSEngine:
         self.call_tts("title", process_text(self.reddit_object["thread_title"]))
         # processed_text = ##self.reddit_object["thread_post"] != ""
         idx = 0
-
+        post_idx = 0
         if settings.config["settings"]["storymode"]:
             if settings.config["settings"]["storymodemethod"] == 0:
                 if len(self.reddit_object["thread_post"]) > self.tts_module.max_chars:
@@ -82,25 +82,24 @@ class TTSEngine:
                 else:
                     self.call_tts("postaudio", process_text(self.reddit_object["thread_post"]))
             elif settings.config["settings"]["storymodemethod"] == 1:
-                for idx, text in track(enumerate(self.reddit_object["thread_post"])):
-                    self.call_tts(f"postaudio-{idx}", process_text(text))
+                for post_idx, text in track(enumerate(self.reddit_object["thread_post"])):
+                    self.call_tts(f"postaudio-{post_idx}", process_text(text))
 
-        else:
-            for idx, comment in track(enumerate(self.reddit_object["comments"]), "Saving..."):
-                # ! Stop creating mp3 files if the length is greater than max length.
-                if self.length > self.max_length and idx > 1:
-                    self.length -= self.last_clip_length
-                    idx -= 1
-                    break
-                if (
-                    len(comment["comment_body"]) > self.tts_module.max_chars
-                ):  # Split the comment if it is too long
-                    self.split_post(comment["comment_body"], idx)  # Split the comment
-                else:  # If the comment is not too long, just call the tts engine
-                    self.call_tts(f"{idx}", process_text(comment["comment_body"]))
+        for idx, comment in track(enumerate(self.reddit_object["comments"]), "Saving..."):
+            # ! Stop creating mp3 files if the length is greater than max length.
+            if self.length > self.max_length and idx > 1:
+                self.length -= self.last_clip_length
+                idx -= 1
+                break
+            if (
+                len(comment["comment_body"]) > self.tts_module.max_chars
+            ):  # Split the comment if it is too long
+                self.split_post(comment["comment_body"], idx)  # Split the comment
+            else:  # If the comment is not too long, just call the tts engine
+                self.call_tts(f"{idx}", process_text(comment["comment_body"]))
 
         print_substep("Saved Text to MP3 files successfully.", style="bold green")
-        return self.length, idx
+        return self.length, idx, post_idx
 
     def split_post(self, text: str, idx):
         split_files = []

@@ -83,6 +83,7 @@ def name_normalize(name: str) -> str:
 
 def prepare_background(reddit_id: str, W: int, H: int) -> str:
     output_path = f"assets/temp/{reddit_id}/background_noaudio.mp4"
+    # return output_path
     output = (
         ffmpeg.input(f"assets/temp/{reddit_id}/background.mp4")
         .filter("crop", f"ih*({W}/{H})", "ih")
@@ -127,10 +128,11 @@ def merge_background_audio(audio: ffmpeg, reddit_id: str):
 
 
 def make_final_video(
-    number_of_clips: int,
-    length: int,
-    reddit_obj: dict,
-    background_config: Dict[str, Tuple],
+        number_of_clips: int,
+        post_numbers: int,
+        length: int,
+        reddit_obj: dict,
+        background_config: Dict[str, Tuple],
 ):
     """Gathers audio clips, gathers all screenshots, stitches them together and saves the final video to assets/temp
     Args:
@@ -148,8 +150,8 @@ def make_final_video(
     reddit_id = re.sub(r"[^\w\s-]", "", reddit_obj["thread_id"])
 
     allowOnlyTTSFolder: bool = (
-        settings.config["settings"]["background"]["enable_extra_audio"]
-        and settings.config["settings"]["background"]["background_audio_volume"] != 0
+            settings.config["settings"]["background"]["enable_extra_audio"]
+            and settings.config["settings"]["background"]["background_audio_volume"] != 0
     )
 
     print_step("Creating the final video 🎥")
@@ -170,8 +172,12 @@ def make_final_video(
         elif settings.config["settings"]["storymodemethod"] == 1:
             audio_clips = [
                 ffmpeg.input(f"assets/temp/{reddit_id}/mp3/postaudio-{i}.mp3")
-                for i in track(range(number_of_clips + 1), "Collecting the audio files...")
+                for i in track(range(post_numbers), "Collecting the audio files...")
             ]
+            if len(reddit_obj["comments"]) > 0:
+                audio_clips = audio_clips + [
+                    ffmpeg.input(f"assets/temp/{reddit_id}/mp3/{i}.mp3") for i in range(number_of_clips)
+                ]
             audio_clips.insert(0, ffmpeg.input(f"assets/temp/{reddit_id}/mp3/title.mp3"))
 
     else:
@@ -189,80 +195,53 @@ def make_final_video(
             float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"]),
         )
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
-    ffmpeg.output(
+    e = ffmpeg.output(
         audio_concat, f"assets/temp/{reddit_id}/audio.mp3", **{"b:a": "192k"}
     ).overwrite_output().run(quiet=True)
-
+    print(e)
     console.log(f"[bold green] Video Will Be: {length} Seconds Long")
 
     screenshot_width = int((W * 45) // 100)
     audio = ffmpeg.input(f"assets/temp/{reddit_id}/audio.mp3")
     final_audio = merge_background_audio(audio, reddit_id)
 
-    image_clips = list()
-
-    image_clips.insert(
-        0,
-        ffmpeg.input(f"assets/temp/{reddit_id}/png/title.png")["v"].filter(
-            "scale", screenshot_width, -1
-        ),
+    audio_clips_durations = []
+    current_length = 0
+    # number_of_clips = 13
+    audio_clips_durations.append(
+        float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"])
     )
+    for i in range(post_numbers):
+        audio_clips_durations.append(float(
+            ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/postaudio-{i}.mp3")["format"]["duration"]
+        ))
 
-    current_time = 0
-    if settings.config["settings"]["storymode"]:
-        audio_clips_durations = [
-            float(
-                ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/postaudio-{i}.mp3")["format"]["duration"]
-            )
-            for i in range(number_of_clips)
-        ]
-        audio_clips_durations.insert(
-            0,
-            float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"]),
+    for i in range(number_of_clips):
+        audio_clips_durations.append(float(
+            ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/{i}.mp3")["format"]["duration"]
+        ))
+    over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/title.png")["v"].filter(
+        "scale", screenshot_width, -1
+    )
+    background_clip = background_clip.overlay(
+        over_lay,
+        enable=f"between(t,{0},{audio_clips_durations[0]})",
+        x="(main_w-overlay_w)/2",
+        y="(main_h-overlay_h)/2",
+    )
+    current_length += audio_clips_durations[0]
+    for i in range(0, number_of_clips + post_numbers - 1):
+        over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/img{i}.png")["v"].filter(
+            "scale", screenshot_width, -1
         )
-        if settings.config["settings"]["storymodemethod"] == 0:
-            image_clips.insert(
-                1,
-                ffmpeg.input(f"assets/temp/{reddit_id}/png/story_content.png").filter(
-                    "scale", screenshot_width, -1
-                ),
-            )
-            background_clip = background_clip.overlay(
-                image_clips[0],
-                enable=f"between(t,{current_time},{current_time + audio_clips_durations[0]})",
-                x="(main_w-overlay_w)/2",
-                y="(main_h-overlay_h)/2",
-            )
-            current_time += audio_clips_durations[0]
-        elif settings.config["settings"]["storymodemethod"] == 1:
-            for i in track(range(0, number_of_clips + 1), "Collecting the image files..."):
-                image_clips.append(
-                    ffmpeg.input(f"assets/temp/{reddit_id}/png/img{i}.png")["v"].filter(
-                        "scale", screenshot_width, -1
-                    )
-                )
-                background_clip = background_clip.overlay(
-                    image_clips[i],
-                    enable=f"between(t,{current_time},{current_time + audio_clips_durations[i]})",
-                    x="(main_w-overlay_w)/2",
-                    y="(main_h-overlay_h)/2",
-                )
-                current_time += audio_clips_durations[i]
-    else:
-        for i in range(0, number_of_clips + 1):
-            image_clips.append(
-                ffmpeg.input(f"assets/temp/{reddit_id}/png/comment_{i}.png")["v"].filter(
-                    "scale", screenshot_width, -1
-                )
-            )
-            image_overlay = image_clips[i].filter("colorchannelmixer", aa=opacity)
-            background_clip = background_clip.overlay(
-                image_overlay,
-                enable=f"between(t,{current_time},{current_time + audio_clips_durations[i]})",
-                x="(main_w-overlay_w)/2",
-                y="(main_h-overlay_h)/2",
-            )
-            current_time += audio_clips_durations[i]
+
+        background_clip = background_clip.overlay(
+            over_lay,
+            enable=f"between(t,{current_length},{current_length + audio_clips_durations[i]})",
+            x="(main_w-overlay_w)/2",
+            y="(main_h-overlay_h)/2",
+        )
+        current_length += audio_clips_durations[i]
 
     title = re.sub(r"[^\w\s-]", "", reddit_obj["thread_title"])
     idx = re.sub(r"[^\w\s-]", "", reddit_obj["thread_id"])
@@ -314,17 +293,7 @@ def make_final_video(
             thumbnailSave.save(f"./assets/temp/{reddit_id}/thumbnail.png")
             print_substep(f"Thumbnail - Building Thumbnail in assets/temp/{reddit_id}/thumbnail.png")
 
-    text = f"Background by {background_config['video'][2]}"
-    background_clip = ffmpeg.drawtext(
-        background_clip,
-        text=text,
-        x=f"(w-text_w)",
-        y=f"(h-text_h)",
-        fontsize=5,
-        fontcolor="White",
-        fontfile=os.path.join("fonts", "Roboto-Regular.ttf"),
-    )
-    background_clip = background_clip.filter("scale", W, H)
+
     print_step("Rendering the video 🎥")
     from tqdm import tqdm
 
@@ -339,7 +308,7 @@ def make_final_video(
     with ProgressFfmpeg(length, on_update_example) as progress:
         path = defaultPath + f"/{filename}"
         path = (
-            path[:251] + ".mp4"
+                path[:251] + ".mp4"
         )  # Prevent a error by limiting the path length, do not change this.
         try:
             ffmpeg.output(
@@ -367,7 +336,7 @@ def make_final_video(
     if allowOnlyTTSFolder:
         path = defaultPath + f"/OnlyTTS/{filename}"
         path = (
-            path[:251] + ".mp4"
+                path[:251] + ".mp4"
         )  # Prevent a error by limiting the path length, do not change this.
         print_step("Rendering the Only TTS Video 🎥")
         with ProgressFfmpeg(length, on_update_example) as progress:

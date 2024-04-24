@@ -8,19 +8,26 @@ from rich.progress import track
 from TTS.engine_wrapper import process_text
 
 
+def textsize(text, font):
+    im = Image.new(mode="P", size=(0, 0))
+    draw = ImageDraw.Draw(im)
+    _, _, width, height = draw.textbbox((0, 0), text=text, font=font)
+    return width, height
+
+
 def draw_multiple_line_text(
-    image, text, font, text_color, padding, wrap=50, transparent=False
+        image, text, font, text_color, padding, wrap=50, transparent=False
 ) -> None:
     """
     Draw multiline text over given image
     """
     draw = ImageDraw.Draw(image)
-    Fontperm = font.getsize(text)
+    Fontperm = textsize(text, font)  # font.getsize(text)
     image_width, image_height = image.size
     lines = textwrap.wrap(text, width=wrap)
     y = (image_height / 2) - (((Fontperm[1] + (len(lines) * padding) / len(lines)) * len(lines)) / 2)
     for line in lines:
-        line_width, line_height = font.getsize(line)
+        line_width, line_height = textsize(line, font)  # font.getsize(line)
         if transparent:
             shadowcolor = "black"
             for i in range(1, 5):
@@ -57,7 +64,7 @@ def imagemaker(theme, reddit_obj: dict, txtclr, padding=5, transparent=False) ->
     Render Images for video
     """
     title = process_text(reddit_obj["thread_title"], False)
-    texts = reddit_obj["thread_post"]
+    texts = reddit_obj["thread_post"] + [r["comment_body"] for r in reddit_obj["comments"]]
     id = re.sub(r"[^\w\s-]", "", reddit_obj["thread_id"])
 
     if transparent:
