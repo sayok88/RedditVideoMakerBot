@@ -64,7 +64,10 @@ def imagemaker(theme, reddit_obj: dict, txtclr, padding=5, transparent=False) ->
     Render Images for video
     """
     title = process_text(reddit_obj["thread_title"], False)
-    texts = reddit_obj["thread_post"] + [r["comment_body"] for r in reddit_obj["comments"]]
+    texts = reddit_obj["thread_post"]
+    if reddit_obj["comments"]:
+        texts.append("Comments!!!")
+        texts = texts + [r["comment_body"] for r in reddit_obj["comments"]]
     id = re.sub(r"[^\w\s-]", "", reddit_obj["thread_id"])
 
     if transparent:

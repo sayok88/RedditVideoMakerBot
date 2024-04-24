@@ -10,6 +10,7 @@ from moviepy.audio.fx.volumex import volumex
 from moviepy.editor import AudioFileClip
 from rich.progress import track
 
+from reddit.morw import get_gender
 from utils import settings
 from utils.console import print_step, print_substep
 from utils.voice import sanitize_text
@@ -33,12 +34,12 @@ class TTSEngine:
     """
 
     def __init__(
-        self,
-        tts_module,
-        reddit_object: dict,
-        path: str = "assets/temp/",
-        max_length: int = DEFAULT_MAX_LENGTH,
-        last_clip_length: int = 0,
+            self,
+            tts_module,
+            reddit_object: dict,
+            path: str = "assets/temp/",
+            max_length: int = DEFAULT_MAX_LENGTH,
+            last_clip_length: int = 0,
     ):
         self.tts_module = tts_module()
         self.reddit_object = reddit_object
@@ -50,7 +51,7 @@ class TTSEngine:
         self.last_clip_length = last_clip_length
 
     def add_periods(
-        self,
+            self,
     ):  # adds periods to the end of paragraphs (where people often forget to put them) so tts doesn't blend sentences
         for comment in self.reddit_object["comments"]:
             # remove links
@@ -75,33 +76,38 @@ class TTSEngine:
         # processed_text = ##self.reddit_object["thread_post"] != ""
         idx = 0
         post_idx = 0
+        gender = self.reddit_object.get("voice_gender")
         if settings.config["settings"]["storymode"]:
             if settings.config["settings"]["storymodemethod"] == 0:
                 if len(self.reddit_object["thread_post"]) > self.tts_module.max_chars:
-                    self.split_post(self.reddit_object["thread_post"], "postaudio")
+                    self.split_post(self.reddit_object["thread_post"], "postaudio", gender=gender)
                 else:
-                    self.call_tts("postaudio", process_text(self.reddit_object["thread_post"]))
+                    self.call_tts("postaudio", process_text(self.reddit_object["thread_post"]), gender=gender)
             elif settings.config["settings"]["storymodemethod"] == 1:
                 for post_idx, text in track(enumerate(self.reddit_object["thread_post"])):
-                    self.call_tts(f"postaudio-{post_idx}", process_text(text))
+                    self.call_tts(f"postaudio-{post_idx}", process_text(text), gender=gender)
+        if self.reddit_object["comments"]:
+            self.call_tts("comments", "Comments!!!")
 
         for idx, comment in track(enumerate(self.reddit_object["comments"]), "Saving..."):
+            gender = get_gender(comment["comment_body"]) if settings.config["settings"]["tts"][
+                "use_comment_gender"] else None
             # ! Stop creating mp3 files if the length is greater than max length.
             if self.length > self.max_length and idx > 1:
                 self.length -= self.last_clip_length
                 idx -= 1
                 break
             if (
-                len(comment["comment_body"]) > self.tts_module.max_chars
+                    len(comment["comment_body"]) > self.tts_module.max_chars
             ):  # Split the comment if it is too long
-                self.split_post(comment["comment_body"], idx)  # Split the comment
+                self.split_post(comment["comment_body"], idx, gender=gender)  # Split the comment
             else:  # If the comment is not too long, just call the tts engine
-                self.call_tts(f"{idx}", process_text(comment["comment_body"]))
+                self.call_tts(f"{idx}", process_text(comment["comment_body"]),gender=gender)
 
         print_substep("Saved Text to MP3 files successfully.", style="bold green")
         return self.length, idx, post_idx
 
-    def split_post(self, text: str, idx):
+    def split_post(self, text: str, idx, gender=None):
         split_files = []
         split_text = [
             x.group().strip()
@@ -120,7 +126,7 @@ class TTSEngine:
                 print("newtext was blank because sanitized split text resulted in none")
                 continue
             else:
-                self.call_tts(f"{idx}-{idy}.part", newtext)
+                self.call_tts(f"{idx}-{idy}.part", newtext, gender=gender)
                 with open(f"{self.path}/list.txt", "w") as f:
                     for idz in range(0, len(split_text)):
                         f.write("file " + f"'{idx}-{idz}.part.mp3'" + "\n")
@@ -142,11 +148,12 @@ class TTSEngine:
         except OSError:
             print("OSError")
 
-    def call_tts(self, filename: str, text: str):
+    def call_tts(self, filename: str, text: str, gender=None):
         self.tts_module.run(
             text,
             filepath=f"{self.path}/{filename}.mp3",
             random_voice=settings.config["settings"]["tts"]["random_voice"],
+            gender=gender
         )
         # try:
         #     self.length += MP3(f"{self.path}/{filename}.mp3").info.length

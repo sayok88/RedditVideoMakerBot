@@ -13,8 +13,11 @@ def cleanup(reddit_id) -> int:
     Returns:
         int: How many files were deleted
     """
-    directory = f"../assets/temp/{reddit_id}/"
+    directory = f"assets/temp/{reddit_id}/"
     if exists(directory):
         shutil.rmtree(directory)
 
         return 1
+
+if __name__ == "__main__":
+    cleanup("1cbkgnd")

@@ -4,13 +4,18 @@ import praw
 from praw.models import MoreComments
 from prawcore.exceptions import ResponseException
 
+from reddit.morw import get_gender
 from utils import settings
 from utils.ai_methods import sort_by_similarity
 from utils.console import print_step, print_substep
 from utils.posttextparser import posttextparser
 from utils.subreddit import get_subreddit_undone
-from utils.videos import check_done
+from utils.videos import check_done, save_data
 from utils.voice import sanitize_text
+
+
+class InvalidStoryException(Exception):
+    """"""
 
 
 def get_subreddit_threads(POST_ID: str):
@@ -102,8 +107,13 @@ def get_subreddit_threads(POST_ID: str):
     submission = check_done(submission)  # double-checking
     if len(submission.selftext) < 500:
         print_step(submission.selftext)
-        print_step(len(submission.selftext))
-        raise Exception("Short Story try again!!!!")
+        print_step(str(len(submission.selftext)))
+        save_data(sub, f"{submission.title}.mp4", submission.title, submission.id, "abc")
+        raise InvalidStoryException("Short Story try again!!!!")
+    if settings.config["settings"]["tts"]["use_gender"]:
+        content["voice_gender"] = get_gender(submission.selftext)
+        print_substep(f"Poster gender {content['voice_gender']} ", style="bold blue")
+
     upvotes = submission.score
     ratio = submission.upvote_ratio * 100
     num_comments = submission.num_comments
@@ -161,6 +171,10 @@ def get_subreddit_threads(POST_ID: str):
             content["thread_post"] = posttextparser(submission.selftext)
         else:
             content["thread_post"] = submission.selftext
-
+    if len(content["comments"]) < 2:
+        print_step(submission.selftext)
+        print_step(str(len(submission.selftext)))
+        save_data(sub, f"{submission.title}.mp4", submission.title, submission.id, "abc")
+        raise InvalidStoryException("Comments are less")
     print_substep("Received subreddit threads Successfully.", style="bold green")
     return content

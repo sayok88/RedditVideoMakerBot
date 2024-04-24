@@ -93,7 +93,7 @@ class TikTok:
         # set the headers to the session, so we don't have to do it for every request
         self._session.headers = headers
 
-    def run(self, text: str, filepath: str, random_voice: bool = False):
+    def run(self, text: str, filepath: str, random_voice: bool = False, **kwargs):
         if random_voice:
             voice = self.random_voice()
         else:

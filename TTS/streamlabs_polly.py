@@ -34,7 +34,7 @@ class StreamlabsPolly:
         self.max_chars = 550
         self.voices = voices
 
-    def run(self, text, filepath, random_voice: bool = False):
+    def run(self, text, filepath, random_voice: bool = False, **kwargs):
         if random_voice:
             voice = self.randomvoice()
         else:

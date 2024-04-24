@@ -15,6 +15,7 @@ class pyttsx:
         text: str,
         filepath: str,
         random_voice=False,
+        **kwargs
     ):
         voice_id = settings.config["settings"]["tts"]["python_voice"]
         voice_num = settings.config["settings"]["tts"]["py_voice_num"]

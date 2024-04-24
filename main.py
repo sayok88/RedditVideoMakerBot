@@ -11,7 +11,7 @@ from typing import NoReturn
 
 from prawcore import ResponseException
 
-from reddit.subreddit import get_subreddit_threads
+from reddit.subreddit import get_subreddit_threads, InvalidStoryException
 from utils import settings
 from utils.cleanup import cleanup
 from utils.console import print_markdown, print_step
@@ -82,7 +82,10 @@ def run_many(times) -> None:
         print_step(
             f'on the {x}{("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th")[x % 10]} iteration of {times}'
         )  # correct 1st 2nd 3rd 4th 5th....
-        main()
+        try:
+            main()
+        except InvalidStoryException as e:
+            print_markdown(e)
         Popen("cls" if name == "nt" else "clear", shell=True).wait()
 
 

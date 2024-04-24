@@ -5,6 +5,7 @@ from rich.console import Console
 from TTS.GTTS import GTTS
 from TTS.TikTok import TikTok
 from TTS.aws_polly import AWSPolly
+from TTS.edgetts import edgetts
 from TTS.elevenlabs import elevenlabs
 from TTS.engine_wrapper import TTSEngine
 from TTS.pyttsx import pyttsx
@@ -21,10 +22,11 @@ TTSProviders = {
     "TikTok": TikTok,
     "pyttsx": pyttsx,
     "ElevenLabs": elevenlabs,
+    "edgetts": edgetts
 }
 
 
-def save_text_to_mp3(reddit_obj) -> Tuple[int, int]:
+def save_text_to_mp3(reddit_obj) -> Tuple[int, int, int]:
     """Saves text to MP3 files.
 
     Args:

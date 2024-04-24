@@ -22,7 +22,7 @@ class elevenlabs:
         self.max_chars = 2500
         self.voices = voices
 
-    def run(self, text, filepath, random_voice: bool = False):
+    def run(self, text, filepath, random_voice: bool = False, **kwargs):
         if random_voice:
             voice = self.randomvoice()
         else:

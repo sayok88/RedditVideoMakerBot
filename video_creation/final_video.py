@@ -175,6 +175,9 @@ def make_final_video(
                 for i in track(range(post_numbers), "Collecting the audio files...")
             ]
             if len(reddit_obj["comments"]) > 0:
+                audio_clips = audio_clips + [ffmpeg.input(f"silence0500.mp3")]
+                audio_clips = audio_clips + [ffmpeg.input(f"assets/temp/{reddit_id}/mp3/comments.mp3")]
+                audio_clips = audio_clips + [ffmpeg.input(f"silence0500.mp3")]
                 audio_clips = audio_clips + [
                     ffmpeg.input(f"assets/temp/{reddit_id}/mp3/{i}.mp3") for i in range(number_of_clips)
                 ]
@@ -230,7 +233,11 @@ def make_final_video(
         y="(main_h-overlay_h)/2",
     )
     current_length += audio_clips_durations[0]
-    for i in range(0, number_of_clips + post_numbers - 1):
+    for i in range(0, number_of_clips + post_numbers + 1):
+        if i == post_numbers:
+            if number_of_clips:
+                current_length += 0.5
+                print(f"img{i}.png")
         over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/img{i}.png")["v"].filter(
             "scale", screenshot_width, -1
         )
@@ -241,6 +248,9 @@ def make_final_video(
             x="(main_w-overlay_w)/2",
             y="(main_h-overlay_h)/2",
         )
+        if i == post_numbers:
+            if number_of_clips:
+                current_length += 0.5
         current_length += audio_clips_durations[i]
 
     title = re.sub(r"[^\w\s-]", "", reddit_obj["thread_title"])
@@ -292,7 +302,6 @@ def make_final_video(
             )
             thumbnailSave.save(f"./assets/temp/{reddit_id}/thumbnail.png")
             print_substep(f"Thumbnail - Building Thumbnail in assets/temp/{reddit_id}/thumbnail.png")
-
 
     print_step("Rendering the video 🎥")
     from tqdm import tqdm
