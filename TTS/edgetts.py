@@ -5,6 +5,13 @@ import edge_tts
 from utils import settings
 from utils.console import print_substep
 
+locales = ['en-GB',
+           'en-NZ',
+           'en-US',
+           'en-AU',
+           'en-IE',
+           'en-CA']
+
 
 class edgetts:
     def __init__(self):
@@ -14,8 +21,9 @@ class edgetts:
         self.f_voice = ""
         with open("TTS/edgtts_voices.json", 'r') as f:
             voices = json.load(f)
-            male = [a for a in voices if "en-" in a["Locale"] and a["Gender"] == "Male"]
-            female = [a for a in voices if "en-" in a["Locale"] and a["Gender"] == "Female"]
+            voices = [a for a in voices if a["Locale"] in locales]
+            male = [a for a in voices if a["Gender"] == "Male"]
+            female = [a for a in voices if a["Gender"] == "Female"]
             self.m_voice = random.choice(male)["ShortName"]
             self.f_voice = random.choice(female)["ShortName"]
         print_substep(f"Female Voice {self.f_voice}")

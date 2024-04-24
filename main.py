@@ -85,7 +85,7 @@ def run_many(times) -> None:
         try:
             main()
         except InvalidStoryException as e:
-            print_markdown(e)
+            print_markdown(str(e))
         Popen("cls" if name == "nt" else "clear", shell=True).wait()
 
 
