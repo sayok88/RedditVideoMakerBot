@@ -100,8 +100,9 @@ def get_subreddit_threads(POST_ID: str):
         exit()
 
     submission = check_done(submission)  # double-checking
-    if len(submission.selftext) < 1000:
+    if len(submission.selftext) < 500:
         print_step(submission.selftext)
+        print_step(len(submission.selftext))
         raise Exception("Short Story try again!!!!")
     upvotes = submission.score
     ratio = submission.upvote_ratio * 100
