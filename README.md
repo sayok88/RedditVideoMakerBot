@@ -1,3 +1,13 @@
+# My Fork of the below.
+
+* improvements
+* removed playright and just screenshot
+* added edgetts engine for voice
+  released in v1
+
+  More coming, listed in [TODO](TODO.md)
+
+
 # Reddit Video Maker Bot 🎥
 
 All done WITHOUT video editing or asset compiling. Just pure ✨programming magic✨.
@@ -10,8 +20,6 @@ Created by Lewis Menelaws & [TMRRW](https://tmrrwinc.ca)
   <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/6053155/170528582-cb6671e7-5a2f-4bd4-a048-0e6cfa54f0f7.png">
   <img src="https://user-images.githubusercontent.com/6053155/170528582-cb6671e7-5a2f-4bd4-a048-0e6cfa54f0f7.png" width="350">
 </picture>
-
-</a>
 
 ## Video Explainer
 
@@ -69,15 +77,15 @@ In its current state, this bot does exactly what it needs to do. However, improv
 
 I have tried to simplify the code so anyone can read it and start contributing at any skill level. Don't be shy :) contribute!
 
-- [ ] Creating better documentation and adding a command line interface.
-- [x] Allowing the user to choose background music for their videos.
-- [x] Allowing users to choose a reddit thread instead of being randomized.
-- [x] Allowing users to choose a background that is picked instead of the Minecraft one.
-- [x] Allowing users to choose between any subreddit.
-- [x] Allowing users to change voice.
-- [x] Checks if a video has already been created
-- [x] Light and Dark modes
-- [x] NSFW post filter
+- [ ]  Creating better documentation and adding a command line interface.
+- [X]  Allowing the user to choose background music for their videos.
+- [X]  Allowing users to choose a reddit thread instead of being randomized.
+- [X]  Allowing users to choose a background that is picked instead of the Minecraft one.
+- [X]  Allowing users to choose between any subreddit.
+- [X]  Allowing users to change voice.
+- [X]  Checks if a video has already been created
+- [X]  Light and Dark modes
+- [X]  NSFW post filter
 
 Please read our [contributing guidelines](CONTRIBUTING.md) for more detailed information.
 
@@ -101,6 +109,6 @@ Freebiell (Freebie#3263) - https://github.com/FreebieII
 
 Aman Raza (electro199#8130) - https://github.com/electro199
 
-
 ## LICENSE
+
 [Roboto Fonts](https://fonts.google.com/specimen/Roboto/about) are licensed under [Apache License V2](https://www.apache.org/licenses/LICENSE-2.0)

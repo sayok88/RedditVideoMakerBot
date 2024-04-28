@@ -18,6 +18,7 @@ from utils.console import print_markdown, print_step
 from utils.console import print_substep
 from utils.ffmpeg_install import ffmpeg_install
 from utils.id import id
+from utils.imagenarator_v2 import create_title_png
 from utils.version import checkversion
 from video_creation.background import (
     download_background_video,
@@ -52,7 +53,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 def main(POST_ID=None) -> None:
     global redditid, reddit_object
     reddit_object = get_subreddit_threads(POST_ID)
-    with open(f"{reddit_object['thread_id']}.json", 'w') as f:
+    with open(f"jsondmps/{reddit_object['thread_id']}.json", 'w') as f:
         json.dump(reddit_object, f)
     redditid = id(reddit_object)
     length, number_of_comments, post_numbers = save_text_to_mp3(reddit_object)
@@ -62,7 +63,10 @@ def main(POST_ID=None) -> None:
         post_numbers += 1
     length = math.ceil(length)  # 275, 15
     # settings.config["settings"]["storymode"]
-    get_screenshots_of_reddit_posts(reddit_object, number_of_comments)
+    if not settings.config["settings"]["sub"]["use_hard_sub"]:
+        get_screenshots_of_reddit_posts(reddit_object, number_of_comments)
+    else:
+        create_title_png(reddit_object)
     # length, number_of_comments, post_numbers = 275, 16, 13
     # with open("1cb414z.json", 'r') as f:
     #     reddit_object = json.load(f)

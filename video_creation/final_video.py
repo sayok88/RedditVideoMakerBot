@@ -19,6 +19,7 @@ from utils.cleanup import cleanup
 from utils.console import print_step, print_substep
 from utils.thumbnail import create_thumbnail
 from utils.videos import save_data
+from vtt import merge_vtt_audio
 
 console = Console()
 
@@ -144,6 +145,7 @@ def make_final_video(
     # settings values
     W: Final[int] = int(settings.config["settings"]["resolution_w"])
     H: Final[int] = int(settings.config["settings"]["resolution_h"])
+    use_hard_sub = settings.config["settings"]["sub"]["use_hard_sub"]
 
     opacity = settings.config["settings"]["opacity"]
 
@@ -167,92 +169,94 @@ def make_final_video(
         exit()
     if settings.config["settings"]["storymode"]:
         if settings.config["settings"]["storymodemethod"] == 0:
-            audio_clips = [ffmpeg.input(f"assets/temp/{reddit_id}/mp3/title.mp3")]
-            audio_clips.insert(1, ffmpeg.input(f"assets/temp/{reddit_id}/mp3/postaudio.mp3"))
+            audio_clips = [f"assets/temp/{reddit_id}/mp3/title.mp3"]
+            audio_clips.insert(1, f"assets/temp/{reddit_id}/mp3/postaudio.mp3")
         elif settings.config["settings"]["storymodemethod"] == 1:
             audio_clips = [
-                ffmpeg.input(f"assets/temp/{reddit_id}/mp3/postaudio-{i}.mp3")
+                f"assets/temp/{reddit_id}/mp3/postaudio-{i}.mp3"
                 for i in track(range(post_numbers), "Collecting the audio files...")
             ]
             if len(reddit_obj["comments"]) > 0:
-                audio_clips = audio_clips + [ffmpeg.input(f"silence0500.mp3")]
-                audio_clips = audio_clips + [ffmpeg.input(f"assets/temp/{reddit_id}/mp3/comments.mp3")]
-                audio_clips = audio_clips + [ffmpeg.input(f"silence0500.mp3")]
+                audio_clips = audio_clips + [f"silence0500.mp3"]
+                audio_clips = audio_clips + [f"assets/temp/{reddit_id}/mp3/comments.mp3"]
+                audio_clips = audio_clips + [f"silence0500.mp3"]
                 audio_clips = audio_clips + [
-                    ffmpeg.input(f"assets/temp/{reddit_id}/mp3/{i}.mp3") for i in range(number_of_clips)
+                    f"assets/temp/{reddit_id}/mp3/{i}.mp3" for i in range(number_of_clips)
                 ]
-            audio_clips.insert(0, ffmpeg.input(f"assets/temp/{reddit_id}/mp3/title.mp3"))
+            audio_clips.insert(0, f"assets/temp/{reddit_id}/mp3/title.mp3")
 
     else:
         audio_clips = [
-            ffmpeg.input(f"assets/temp/{reddit_id}/mp3/{i}.mp3") for i in range(number_of_clips)
+            f"assets/temp/{reddit_id}/mp3/{i}.mp3" for i in range(number_of_clips)
         ]
-        audio_clips.insert(0, ffmpeg.input(f"assets/temp/{reddit_id}/mp3/title.mp3"))
+        audio_clips.insert(0, f"assets/temp/{reddit_id}/mp3/title.mp3")
 
-        audio_clips_durations = [
-            float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/{i}.mp3")["format"]["duration"])
-            for i in range(number_of_clips)
-        ]
-        audio_clips_durations.insert(
-            0,
-            float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"]),
-        )
-    audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
-    e = ffmpeg.output(
-        audio_concat, f"assets/temp/{reddit_id}/audio.mp3", **{"b:a": "192k"}
-    ).overwrite_output().run(quiet=True)
-    print(e)
+    audio_duration = merge_vtt_audio(audio_clips, f"assets/temp/{reddit_id}/audio")
+    vtt_file = f"assets/temp/{reddit_id}/audio.vtt"
     console.log(f"[bold green] Video Will Be: {length} Seconds Long")
 
-    screenshot_width = int((W * 45) // 100)
     audio = ffmpeg.input(f"assets/temp/{reddit_id}/audio.mp3")
     final_audio = merge_background_audio(audio, reddit_id)
+    screenshot_width = int((W * 45) // 100)
+    if not use_hard_sub:
+        audio_clips_durations = []
+        current_length = 0
+        # number_of_clips = 13
+        audio_clips_durations.append(
+            float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"])
+        )
+        for i in range(post_numbers):
+            audio_clips_durations.append(float(
+                ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/postaudio-{i}.mp3")["format"]["duration"]
+            ))
 
-    audio_clips_durations = []
-    current_length = 0
-    # number_of_clips = 13
-    audio_clips_durations.append(
-        float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"])
-    )
-    for i in range(post_numbers):
-        audio_clips_durations.append(float(
-            ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/postaudio-{i}.mp3")["format"]["duration"]
-        ))
-
-    for i in range(number_of_clips):
-        audio_clips_durations.append(float(
-            ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/{i}.mp3")["format"]["duration"]
-        ))
-    over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/title.png")["v"].filter(
-        "scale", screenshot_width, -1
-    )
-    background_clip = background_clip.overlay(
-        over_lay,
-        enable=f"between(t,{0},{audio_clips_durations[0]})",
-        x="(main_w-overlay_w)/2",
-        y="(main_h-overlay_h)/2",
-    )
-    current_length += audio_clips_durations[0]
-    for i in range(0, number_of_clips + post_numbers + 1):
-        if i == post_numbers:
-            if number_of_clips:
-                current_length += 0.5
-                print(f"img{i}.png")
-        over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/img{i}.png")["v"].filter(
+        for i in range(number_of_clips):
+            audio_clips_durations.append(float(
+                ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/{i}.mp3")["format"]["duration"]
+            ))
+        over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/title.png")["v"].filter(
             "scale", screenshot_width, -1
         )
-
         background_clip = background_clip.overlay(
             over_lay,
-            enable=f"between(t,{current_length},{current_length + audio_clips_durations[i]})",
+            enable=f"between(t,{0},{audio_clips_durations[0]})",
             x="(main_w-overlay_w)/2",
             y="(main_h-overlay_h)/2",
         )
-        if i == post_numbers:
-            if number_of_clips:
-                current_length += 0.5
-        current_length += audio_clips_durations[i]
+        current_length += audio_clips_durations[0]
+        for i in range(0, number_of_clips + post_numbers + 1):
+            if i == post_numbers:
+                if number_of_clips:
+                    current_length += 0.5
+                    print(f"img{i}.png")
+            over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/img{i}.png")["v"].filter(
+                "scale", screenshot_width, -1
+            )
 
+            background_clip = background_clip.overlay(
+                over_lay,
+                enable=f"between(t,{current_length},{current_length + audio_clips_durations[i]})",
+                x="(main_w-overlay_w)/2",
+                y="(main_h-overlay_h)/2",
+            )
+            if i == post_numbers:
+                if number_of_clips:
+                    current_length += 0.5
+            current_length += audio_clips_durations[i]
+
+    else:
+        style = "FontName=Jersey 15,FontSize=20,PrimaryColour=&H00ffff00,OutlineColour=&H000000ff,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10"
+        background_clip = background_clip.filter('subtitles', f"assets/temp/{reddit_id}/audio.vtt", force_style=style)
+        over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/title.png")["v"].filter(
+            "scale", screenshot_width, -1
+        )
+        title_dur = float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"])
+        background_clip = background_clip.overlay(
+            over_lay,
+            enable=f"between(t,0,{title_dur})",
+            x="(main_w-overlay_w)/2",
+            y="(main_h-overlay_h)/2",
+        )
     title = re.sub(r"[^\w\s-]", "", reddit_obj["thread_title"])
     idx = re.sub(r"[^\w\s-]", "", reddit_obj["thread_id"])
     title_thumb = reddit_obj["thread_title"]
@@ -367,6 +371,7 @@ def make_final_video(
                     capture_stdout=False,
                     capture_stderr=False,
                 )
+
             except ffmpeg.Error as e:
                 print(e.stderr.decode("utf8"))
                 exit(1)

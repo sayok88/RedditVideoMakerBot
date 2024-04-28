@@ -73,7 +73,6 @@ class TTSEngine:
 
         self.add_periods()
         self.call_tts("title", process_text(self.reddit_object["thread_title"]))
-        # processed_text = ##self.reddit_object["thread_post"] != ""
         idx = 0
         post_idx = 0
         gender = self.reddit_object.get("voice_gender")
