@@ -111,7 +111,10 @@ def get_subreddit_threads(POST_ID: str):
         save_data(sub, f"{submission.title}.mp4", submission.title, submission.id, "abc")
         raise InvalidStoryException("Short Story try again!!!!")
     if settings.config["settings"]["tts"]["use_gender"]:
-        content["voice_gender"] = get_gender(submission.selftext)
+        if settings.config["settings"]["tts"]["override_gender"] in ('M', 'F'):
+            content["voice_gender"] = settings.config["settings"]["tts"]["override_gender"]
+        else:
+            content["voice_gender"] = get_gender(submission.selftext)
         print_substep(f"Poster gender {content['voice_gender']} ", style="bold blue")
 
     upvotes = submission.score

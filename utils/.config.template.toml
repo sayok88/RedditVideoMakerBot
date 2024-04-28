@@ -61,4 +61,5 @@ no_emojis = { optional = false, type = "bool", default = false, example = false,
 edge_tts_voice = { optional = true, example = "en-GB-SoniaNeural", explanation = "Refer to edge tts json - use ShortName" }
 use_gender = { optional = false, type = "bool", default = false, example = false, options = [true, false, ], explanation = "Change voice for each post part" }
 use_comment_gender = { optional = false, type = "bool", default = false, example = false, options = [true, false, ], explanation = "Change voice for each comment part" }
+override_gender = { optional = true, default = "F", example = "M/F", explanation = "Override voice gender for post from uclassify" }
 uclassify_key = { optional = true, example = "21f13f91f54d741e2ae27d2ab1b99d59", explanation = "uclassify Read API key" }

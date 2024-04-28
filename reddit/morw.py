@@ -10,7 +10,7 @@ from utils.console import print_substep
 def get_gender(text):
     key = settings.config["settings"]["tts"]["uclassify_key"]
     m_p = random.choice([0, 1])
-    f_p = int(m_p // 2)
+    f_p = 1 - m_p
     try:
         response = requests.post("https://api.uclassify.com/v1/uClassify/GenderAnalyzer_v5/classify",
                                  data=json.dumps({"texts": [text]}),
@@ -18,8 +18,6 @@ def get_gender(text):
                                           'Authorization': f'Token {key}'
                                           })
         data = response.json()[0].get("classification", {})
-        m_p = random.choice([0, 1])
-        f_p = int(m_p // 2)
         for p in data:
             if p.get('className', '') == 'female':
                 f_p = p.get("p", f_p)
