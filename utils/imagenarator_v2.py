@@ -55,7 +55,7 @@ def create_lower_header(c_count, l_count, s_count, o_file=None):
 def draw_multiple_line_text_1(
         image, text, font, text_color, padding, wrap=40, transparent=False, header=None, sub_header=None,
         comment_box=None
-) -> None:
+) -> Image:
     """
     Draw multiline text over given image
     """
@@ -83,6 +83,8 @@ def draw_multiple_line_text_1(
     height = y
     if comment_box:
         image.paste(comment_box, (20, height,))
+    height += 120
+    return image.crop((0, 0, image_width, height))
 
 
 def get_counts(reddit_obj):
@@ -99,11 +101,11 @@ def create_title_png(reddit_obj):
     size = (1920, 1080)
     image = Image.new("RGBA", size, bgcolor)
     # text = process_text(text, False)
-    header = "True Crazy Stories"
+    header = "A Few Stories from /r"
     header2 = "😊😇😎😱🤯"
     font = ImageFont.truetype(os.path.join("fonts", "Roboto-Regular.ttf"), 100)
-    draw_multiple_line_text_1(image, text, font, "black", 20, header=header, sub_header=header2,
-                              comment_box=create_lower_header(*get_counts(reddit_obj)))
+    image = draw_multiple_line_text_1(image, text, font, "black", 20, header=header, sub_header=header2,
+                                      comment_box=create_lower_header(*get_counts(reddit_obj)))
     # create_lower_header("6", "1293", "90", "ijkl")
     image.save(f"assets/temp/{reddit_id}/png/title.png")
 
