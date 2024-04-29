@@ -58,6 +58,8 @@ The only original thing being done is the editing and gathering of all materials
 1. Clone this repository
 2. Run `pip install -r requirements.txt`
 3. Run `python -m playwright install` and `python -m playwright install-deps`
+4. For mac open fonts and copy Apple Color Emoji.ttc into fonts, other platform can download Apple Color Emoji.ttc from 
+https://drive.usercontent.google.com/download?id=1aGzSjSPUlYtCpH-Yn6ggWCWXNfIKdu6Z&export=download&authuser=0 and rename it to Apple Color Emoji.ttc and move under fonts folder
 
 **EXPERIMENTAL!!!!**
 
