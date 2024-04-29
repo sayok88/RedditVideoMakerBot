@@ -78,7 +78,11 @@ If you want to read more detailed guide about the bot, please refer to the [docu
 
 ## Video
 
-https://user-images.githubusercontent.com/66544866/173453972-6526e4e6-c6ef-41c5-ab40-5d275e724e7c.mp4
+
+
+https://github.com/sayok88/RedditVideoMakerBot/assets/25224679/3d78c325-3560-4bf2-b0d6-5d1f58c18eff
+
+
 
 ## Contributing & Ways to improve 📈
 
