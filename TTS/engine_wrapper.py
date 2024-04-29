@@ -14,6 +14,7 @@ from reddit.morw import get_gender
 from utils import settings
 from utils.console import print_step, print_substep
 from utils.voice import sanitize_text
+from vtt import merge_vtt_audio
 
 DEFAULT_MAX_LENGTH: int = (
     300  # Video length variable, edit this on your own risk. It should work, but it's not supported
@@ -127,22 +128,24 @@ class TTSEngine:
                 continue
             else:
                 self.call_tts(f"{idx}-{idy}.part", newtext, gender=gender)
-                with open(f"{self.path}/list.txt", "w") as f:
-                    for idz in range(0, len(split_text)):
-                        f.write("file " + f"'{idx}-{idz}.part.mp3'" + "\n")
-                    split_files.append(str(f"{self.path}/{idx}-{idy}.part.mp3"))
-                    f.write("file " + f"'silence.mp3'" + "\n")
 
-                os.system(
-                    "ffmpeg -f concat -y -hide_banner -loglevel panic -safe 0 "
-                    + "-i "
-                    + f"{self.path}/list.txt "
-                    + "-c copy "
-                    + f"{self.path}/{idx}.mp3"
-                )
+                split_files.append(str(f"{self.path}/{idx}-{idy}.part.mp3"))
+
+                # os.system(
+                #     "ffmpeg -f concat -y -hide_banner -loglevel panic -safe 0 "
+                #     + "-i "
+                #     + f"{self.path}/list.txt "
+                #     + "-c copy "
+                #     + f"{self.path}/{idx}.mp3"
+                # )
+        merge_vtt_audio(split_files, f"{self.path}/{idx}")
         try:
             for i in range(0, len(split_files)):
                 os.unlink(split_files[i])
+                try:
+                    os.unlink(split_files[i].replace('mp3', 'vtt'))
+                except:
+                    pass
         except FileNotFoundError as e:
             print("File not found: " + e.filename)
         except OSError:
