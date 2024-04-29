@@ -10,4 +10,4 @@ TODO
 * [x]  Use sub instead of screenshot
 * [x]  Create nice title card
 * [ ]  Create long form video with main story and updates
-* [ ]  Fix join of vtt in part line TTS/engine_wrapper.py:126
+* [x]  Fix join of vtt in part line TTS/engine_wrapper.py:126
