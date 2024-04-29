@@ -157,9 +157,11 @@ def make_final_video(
     )
 
     print_step("Creating the final video 🎥")
+    print_step("Creating background_clip 🎥")
 
     background_clip = ffmpeg.input(prepare_background(reddit_id, W=W, H=H))
 
+    print_step("Joining audio  files 🎵")
     # Gather all audio clips
     audio_clips = list()
     if number_of_clips == 0 and settings.config["settings"]["storymode"] == "false":

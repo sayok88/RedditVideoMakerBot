@@ -23,7 +23,7 @@ def get_gender(text):
                 f_p = p.get("p", f_p)
             else:
                 m_p = p.get("p", m_p)
-        print_substep(text, m_p, f_p)
+        print_substep(text + str(m_p) + str(f_p))
     except Exception as e:
         pass
     return 'M' if m_p > f_p else 'F'
