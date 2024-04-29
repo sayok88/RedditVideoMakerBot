@@ -1,14 +1,23 @@
-# My Fork of the below.
-
-* improvements
-* removed playright and just screenshot
-* added edgetts engine for voice
-  released in v1
-
-  More coming, listed in [TODO](TODO.md)
-
 
 # Reddit Video Maker Bot 🎥
+
+
+# My Fork of the below.
+This fork is not going to be merged with the original. 
+Original readme is kept for credits to original author.
+
+
+* improvements
+* removed playright and just text box
+* added edgetts engine for voice
+  released in v1
+* v2 work is coming along refer to [TODO](TODO.md)
+    * use subtitle as main video track, instead of textbox(this option is still available)
+    * title credits creation with text box and emoji support in title
+    * Different voices in edgetts and gender identification of post creator to change voice gender. 
+
+More coming, listed in [TODO](TODO.md)
+
 
 All done WITHOUT video editing or asset compiling. Just pure ✨programming magic✨.
 
@@ -53,7 +62,7 @@ The only original thing being done is the editing and gathering of all materials
 
 On macOS and Linux (debian, arch, fedora and centos, and based on those), you can run an install script that will automatically install steps 1 to 3. (requires bash)
 
-`bash <(curl -sL https://raw.githubusercontent.com/elebumm/RedditVideoMakerBot/master/install.sh)`
+`bash <(curl -sL https://raw.githubusercontent.com/sayok88/RedditVideoMakerBot/master/install.sh)`
 
 This can also be used to update the installation
 
@@ -91,7 +100,7 @@ Please read our [contributing guidelines](CONTRIBUTING.md) for more detailed inf
 
 ### For any questions or support join the [Discord](https://discord.gg/WBQT52RrHV) server
 
-## Developers and maintainers.
+## Developers and maintainers. (From Original Repo, dont bug them for this one)
 
 Elebumm (Lewis#6305) - https://github.com/elebumm (Founder)
 
