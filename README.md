@@ -18,6 +18,7 @@ Original readme is kept for credits to original author.
 
 More coming, listed in [TODO](TODO.md)
 
+To see progress in dev and actual videos visit https://www.facebook.com/people/A-Few-Stories-from-r/100069823481590/
 
 All done WITHOUT video editing or asset compiling. Just pure ✨programming magic✨.
 
