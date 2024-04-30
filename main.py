@@ -20,6 +20,7 @@ from utils.ffmpeg_install import ffmpeg_install
 from utils.id import id
 from utils.imagenarator_v2 import create_title_png
 from utils.version import checkversion
+from video_creation.audio_creation import create_audio
 from video_creation.background import (
     download_background_video,
     download_background_audio,
@@ -61,7 +62,7 @@ def main(POST_ID=None) -> None:
         number_of_comments += 1
     if post_numbers > 0:
         post_numbers += 1
-    length = math.ceil(length)  # 275, 15
+    # 275, 15
     # settings.config["settings"]["storymode"]
     if not settings.config["settings"]["sub"]["use_hard_sub"]:
         get_screenshots_of_reddit_posts(reddit_object, number_of_comments)
@@ -78,6 +79,8 @@ def main(POST_ID=None) -> None:
     download_background_video(bg_config["video"])
     download_background_audio(bg_config["audio"])
     chop_background(bg_config, length, reddit_object)
+    length = create_audio(number_of_comments, post_numbers, reddit_object)
+    length = math.ceil(length)
     make_final_video(number_of_comments, post_numbers, length, reddit_object, bg_config)
 
 

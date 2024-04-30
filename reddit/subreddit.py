@@ -110,6 +110,11 @@ def get_subreddit_threads(POST_ID: str):
         print_step(str(len(submission.selftext)))
         save_data(sub, f"{submission.title}.mp4", submission.title, submission.id, "abc")
         raise InvalidStoryException("Short Story try again!!!!")
+
+    # TODO: remove this later
+    if "update" in submission.title.lower():
+        save_data(sub, f"{submission.title}.mp4", submission.title, submission.id, "abc")
+        raise InvalidStoryException("Dont want updates now")
     if settings.config["settings"]["tts"]["use_gender"]:
         if settings.config["settings"]["tts"]["override_gender"] in ('M', 'F'):
             content["voice_gender"] = settings.config["settings"]["tts"]["override_gender"]

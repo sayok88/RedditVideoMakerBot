@@ -3,6 +3,8 @@ import random
 from time import sleep
 
 import edge_tts
+
+from TTS.edgetts_submaker.submaker import SubMaker
 from utils import settings
 from utils.console import print_substep
 
@@ -43,7 +45,7 @@ class edgetts:
         try:
             use_hard_sub = settings.config["settings"]["sub"]["use_hard_sub"]
             if use_hard_sub:
-                sub_maker = edge_tts.SubMaker()
+                sub_maker = SubMaker()
                 sub_path = filepath.replace('.mp3', '.vtt')
 
             communicate = None
