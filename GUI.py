@@ -6,13 +6,13 @@ import tomlkit
 from flask import (
     Flask,
     redirect,
-    render_template,
     request,
     send_from_directory,
-    url_for,
+    url_for, render_template,g
 )
 
 import utils.gui_utils as gui
+
 
 # Set the hostname
 HOST = "localhost"
@@ -34,7 +34,8 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-
+from handlers.get_reddit_story import bp as story_bp
+app.register_blueprint(story_bp)
 # Display index.html
 @app.route("/")
 def index():
@@ -94,7 +95,7 @@ def videos_json():
 # Make backgrounds.json accessible
 @app.route("/backgrounds.json")
 def backgrounds_json():
-    return send_from_directory("utils", "backgrounds.json")
+    return send_from_directory("utils", "background_videos.json")
 
 
 # Make videos in results folder accessible
@@ -109,8 +110,10 @@ def voices(name):
     return send_from_directory("GUI/voices", name, as_attachment=True)
 
 
+
 # Run browser and start the app
 if __name__ == "__main__":
-    webbrowser.open(f"http://{HOST}:{PORT}", new=2)
+    # webbrowser.open(f"http://{HOST}:{PORT}", new=2)
     print("Website opened in new tab. Refresh if it didn't load.")
-    app.run(port=PORT)
+
+    app.run(port=PORT, debug=True)
