@@ -114,11 +114,12 @@ def get_subreddit_undone(submissions: list, subreddit, times_checked=0, similari
     with open("./video_creation/data/already_fetched.json", "r", encoding="utf-8") as already_fetched:
         already_fetched = json.load(already_fetched)
     for i, submission in enumerate(submissions):
-        if already_done(done_videos, submission) or str(submission) in already_fetched:
+        does_exists = Story.query.filter(Story.thread_id == submission.id).count() > 0
+        if already_done(done_videos, submission) or str(submission) in already_fetched or does_exists:
             continue
         if submission.over_18:
             try:
-                if not config["settings"]["allow_nsfw"]:
+                if not config["allow_nsfw"]:
                     print_substep("NSFW Post Detected. Skipping...")
                     continue
             except AttributeError:
@@ -204,7 +205,7 @@ def get_story(post_id=None, force_get_story=False):
     db.session.add(story)
     db.session.commit()
     content["thread_url"] = threadurl
-
+    content["comments"] = []
     return content
 
 

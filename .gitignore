@@ -247,3 +247,5 @@ config.toml
 *.exe
 database.db
 migrations
+fe-app/node_modules
+fe-app/.svelte-kit
