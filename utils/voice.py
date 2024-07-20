@@ -89,8 +89,10 @@ def sanitize_text(text: str) -> str:
     result = result.replace("+", "plus").replace("&", "and")
 
     # emoji removal if the setting is enabled
-    if settings.config["settings"]["tts"]["no_emojis"]:
-        result = clean(result, no_emoji=True)
-
+    try:
+        if settings.config["settings"]["tts"]["no_emojis"]:
+            result = clean(result, no_emoji=True)
+    except:
+        pass
     # remove extra whitespace
     return " ".join(result.split())

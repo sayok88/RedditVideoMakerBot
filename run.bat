@@ -13,3 +13,6 @@ if errorlevel 1 (
     echo An error occurred. Press any key to exit.
     pause >nul
 )
+flask --app GUI db init
+flask --app migrate  db migrate -m "Initial migration."
+flask --app GUI  db upgrade

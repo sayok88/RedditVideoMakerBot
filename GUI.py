@@ -1,3 +1,4 @@
+import os
 import webbrowser
 from pathlib import Path
 
@@ -10,9 +11,11 @@ from flask import (
     send_from_directory,
     url_for, render_template,g
 )
+from flask_migrate import Migrate
+from flask_cors import CORS
 
 import utils.gui_utils as gui
-
+from models import db
 
 # Set the hostname
 HOST = "localhost"
@@ -24,7 +27,15 @@ app = Flask(__name__, template_folder="GUI")
 
 # Configure secret key only to use 'flash'
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+basedir = os.path.abspath(os.path.dirname(__file__))
 
+app.config['SQLALCHEMY_DATABASE_URI'] =\
+        'sqlite:///' + os.path.join(basedir, 'database.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+migrate = Migrate(app, db)
+CORS(app)
 
 # Ensure responses aren't cached
 @app.after_request

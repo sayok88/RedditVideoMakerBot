@@ -245,3 +245,5 @@ video_creation/data/envvars.txt
 
 config.toml
 *.exe
+database.db
+migrations
