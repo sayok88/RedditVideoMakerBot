@@ -9,7 +9,7 @@ from praw.models import MoreComments
 from prawcore import ResponseException
 from sqlalchemy import desc
 
-from models import Story, db, Comment
+from models import Story, db, Comment, VideoScript, VideoScriptStories, ScriptText
 from utils.ai_methods import sort_by_similarity
 from utils.console import print_substep
 from utils.gui_utils import get_config
@@ -308,3 +308,24 @@ def get_stories(page=1):
     offset = (page - 1) * per_page
     stories = db.session.query(Story).order_by(desc(Story.created_at)).offset(offset).limit(per_page).all()
     return {'stories': d_list(stories)}
+
+
+def create_vid_script_api(thread_id, data):
+    vs = VideoScript()
+    db.session.add(vs)
+    db.session.commit()
+    print(vs.id)
+    story = Story.query.filter(Story.thread_id == thread_id).one_or_none()
+    if story is None:
+        return None
+    vss = VideoScriptStories(video_id=vs.id, story_id=story.thread_id)
+    db.session.add(vss)
+    db.session.commit()
+    i = 0
+    for st in data:
+        std = ScriptText(video_id=vs.id, text=st.get("text"), index=i, datasource=st.get("datasource"))
+        i += 1
+        db.session.add(std)
+        db.session.commit()
+    return vs.id
+

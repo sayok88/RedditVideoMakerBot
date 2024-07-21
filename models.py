@@ -86,7 +86,7 @@ class VideoScriptStories(db.Model):
 
 class ScriptText(db.Model):
     __tablename__ = 'script_text'
-    id = db.Column(db.Text, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     video_id = db.Column(db.Integer, db.ForeignKey('video_scripts.id'))
     index = db.Column(db.Integer, nullable=False, default=0)
     text = db.Column(db.Text, nullable=False)

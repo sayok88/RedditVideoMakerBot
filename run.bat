@@ -14,5 +14,5 @@ if errorlevel 1 (
     pause >nul
 )
 flask --app GUI db init
-flask --app migrate  db migrate -m "Initial migration."
+flask --app GUI  db migrate -m "Initial migration."
 flask --app GUI  db upgrade

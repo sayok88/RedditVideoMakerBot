@@ -11,6 +11,7 @@
 		cdata.replies = await response.json();
 	}
 	$: cdata.selected = selected;
+	$: cdata.extra = extra;
 </script>
 <style>
     textarea {
