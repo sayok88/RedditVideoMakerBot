@@ -75,18 +75,19 @@ class VideoScript(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
 
 
-class VideoScriptStories(db.Model):
-    __tablename__ = 'video_scriptstories'
-    video_id = db.Column(db.Integer, db.ForeignKey('video_scripts.id'), primary_key=True)
-    story_id = db.Column(db.Text, db.ForeignKey('stories.thread_id'), primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow())
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
-    __table_args__ = (UniqueConstraint("video_id", "story_id", name="two_columns"),)
+# class VideoScriptStories(db.Model):
+#     __tablename__ = 'video_scriptstories'
+#     video_id = db.Column(db.Integer, db.ForeignKey('video_scripts.id'), primary_key=True)
+#     story_id = db.Column(db.Text, db.ForeignKey('stories.thread_id'), primary_key=True)
+#     created_at = db.Column(db.DateTime, default=datetime.utcnow())
+#     updated_at = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+#     __table_args__ = (UniqueConstraint("video_id", "story_id", name="two_columns"),)
 
 
 class ScriptText(db.Model):
     __tablename__ = 'script_text'
     id = db.Column(db.Integer, primary_key=True)
+    story_id = db.Column(db.Text, db.ForeignKey('stories.thread_id'))
     video_id = db.Column(db.Integer, db.ForeignKey('video_scripts.id'))
     index = db.Column(db.Integer, nullable=False, default=0)
     text = db.Column(db.Text, nullable=False)
@@ -94,3 +95,16 @@ class ScriptText(db.Model):
     datasource = db.Column(db.Text, nullable=False)  # Urls for post/comments or filler data
     created_at = db.Column(db.DateTime, default=datetime.utcnow())
     updated_at = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+
+    def t_data(self):
+        return {
+            'id': self.id,
+            'story_id': self.story_id,
+            'video_id': self.video_id,
+            'index': self.index,
+            'text': self.text,
+            'voice': self.voice,
+            'datasource': self.datasource,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+        }

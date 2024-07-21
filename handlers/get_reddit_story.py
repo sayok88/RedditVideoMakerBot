@@ -2,7 +2,7 @@ from flask import render_template, request, jsonify
 from flask import Blueprint
 
 from handlers.utils import get_story, get_post_comment, get_replies, get_static_story, get_stories, \
-    create_vid_script_api
+    create_vid_script_api, get_scripts_api, get_scripts_vid_api
 
 bp = Blueprint('handlers', __name__)
 
@@ -46,6 +46,15 @@ def create_vid_script():
     data = request.get_json()
     id = create_vid_script_api(data.get("thread_id"), data.get("selected_comments"))
     print(data)
-    response = jsonify({'vid_id':
-                            id})
+    response = jsonify({'vid_id': id})
     return response
+
+
+@bp.route("/get_scripts", methods=["GET"])
+def get_scripts():
+    page = request.args.get('page', 0, type=int)
+    return {'response': get_scripts_api(page)}
+
+@bp.route("/get_scripts/<int:video_id>", methods=["GET"])
+def get_scripts_vid(video_id):
+    return {'response': get_scripts_vid_api(video_id)}

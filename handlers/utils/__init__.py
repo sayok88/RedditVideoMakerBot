@@ -9,7 +9,7 @@ from praw.models import MoreComments
 from prawcore import ResponseException
 from sqlalchemy import desc
 
-from models import Story, db, Comment, VideoScript, VideoScriptStories, ScriptText
+from models import Story, db, Comment, VideoScript, ScriptText
 from utils.ai_methods import sort_by_similarity
 from utils.console import print_substep
 from utils.gui_utils import get_config
@@ -318,9 +318,9 @@ def create_vid_script_api(thread_id, data):
     story = Story.query.filter(Story.thread_id == thread_id).one_or_none()
     if story is None:
         return None
-    vss = VideoScriptStories(video_id=vs.id, story_id=story.thread_id)
-    db.session.add(vss)
-    db.session.commit()
+    # vss = VideoScriptStories(video_id=vs.id, story_id=story.thread_id)
+    # db.session.add(vss)
+    # db.session.commit()
     i = 0
     for st in data:
         std = ScriptText(video_id=vs.id, text=st.get("text"), index=i, datasource=st.get("datasource"))
@@ -328,4 +328,39 @@ def create_vid_script_api(thread_id, data):
         db.session.add(std)
         db.session.commit()
     return vs.id
+
+
+def get_scripts_api(page=0):
+    per_page = 4
+    offset = (page - 1) * per_page
+    vss = VideoScript.query.order_by(desc(VideoScript.created_at)).offset(offset).limit(per_page).all()
+    scripts = []
+    for video_script_story in vss:
+        temp = {}
+        # story = Story.query.filter(Story.thread_id == video_script_story.story_id).one_or_none()
+        # if story is None:
+        #     continue
+        # temp["story"] = story.t_data()
+        st = ScriptText.query.filter(ScriptText.index == 0, ScriptText.video_id == video_script_story.video_id).one_or_none()
+        if st is None:
+            continue
+        temp["script"] = st.text
+        temp["video_id"] = video_script_story.video_id
+        temp["story_id"] = video_script_story.story_id
+        scripts.append(temp)
+    return scripts
+
+def get_scripts_vid_api(video_id):
+    vss = VideoScript.query.filter(VideoScript.id == video_id)
+    stories = ScriptText.query(ScriptText.story_id).filter(ScriptText.video_id == video_id).distinct()
+    data = {}
+    for story in stories:
+        script = []
+        script_texts = ScriptText.query.filter(ScriptText.story_id==story, ScriptText.video_id == video_id).order_by(ScriptText.index)
+        for st in script_texts:
+            script.append(st.t_data())
+        data[story.story_id] = script
+    return data
+
+
 
