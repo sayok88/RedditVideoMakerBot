@@ -3,7 +3,7 @@ from flask import Blueprint
 
 from handlers.utils import get_story, get_post_comment, get_replies, get_static_story, get_stories, \
     create_vid_script_api, get_scripts_api, get_scripts_vid_api, get_video_backgrounds, get_audio_backgrounds, \
-    get_voices
+    get_voices, update_video_script, update_script_text
 
 bp = Blueprint('handlers', __name__)
 
@@ -66,3 +66,11 @@ def get_scripts_vid(video_id):
 def video_config_all():
     return {'videos': get_video_backgrounds(), 'audios': get_audio_backgrounds(),
             'voices': get_voices()}
+
+@bp.route("/update_script/<int:video_id>", methods=["PUT"])
+def update_script(video_id):
+    data = request.get_json()
+    update_script_text(data['script_data'])
+    update_video_script(data['video_data'])
+    return {}
+

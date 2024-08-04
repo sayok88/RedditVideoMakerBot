@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from os.path import exists
 from pathlib import Path
 
@@ -323,7 +324,8 @@ def create_vid_script_api(thread_id, data):
     # db.session.commit()
     i = 0
     for st in data:
-        std = ScriptText(video_id=vs.id, text=st.get("text"), index=i, datasource=st.get("datasource"))
+        std = ScriptText(video_id=vs.id, text=st.get("text"), index=i, datasource=st.get("datasource"),
+                         story_id=thread_id)
         i += 1
         db.session.add(std)
         db.session.commit()
@@ -352,17 +354,18 @@ def get_scripts_api(page=0):
 
 
 def get_scripts_vid_api(video_id):
+    vs = VideoScript.query.filter(VideoScript.id == video_id).one_or_none()
     script_texts = ScriptText.query.filter(ScriptText.video_id == video_id).order_by(
         ScriptText.index)
     script = []
     for st in script_texts:
         script.append(st.t_data())
-    return script
+    return dict(script=script, video=vs.t_data())
 
 
 def get_voices():
     with open('./TTS/edgtts_voices.json', 'r') as f:
-        return json.load(f)
+        return [x for x in json.load(f) if "English (United States)" in x['FriendlyName']]
 
 
 def get_video_backgrounds():
@@ -373,3 +376,27 @@ def get_video_backgrounds():
 def get_audio_backgrounds():
     with open('./utils/background_audios.json', 'r') as f:
         return json.load(f)
+
+
+def update_script_text(data):
+    for row in data:
+        vs = ScriptText.query.filter(ScriptText.id == row['id']).first()
+        if vs is not None:
+            vs.text = row.get('text')
+            vs.voice = row.get('voice')
+            vs.updated_at = datetime.utcnow()
+            db.session.add(vs)
+            db.session.commit()
+
+
+def update_video_script(data):
+    print(data)
+    vs = VideoScript.query.filter(VideoScript.id == data['id']).first()
+    if vs is not None:
+        vs.job_status = data.get('job_status')
+        vs.background_video = data.get('background_video')
+        vs.background_music_volume = data.get('background_music_volume')
+        vs.background_music = data.get('background_music')
+        vs.updated_at = datetime.utcnow()
+        db.session.add(vs)
+        db.session.commit()

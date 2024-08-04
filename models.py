@@ -76,6 +76,18 @@ class VideoScript(db.Model):
     background_video = db.Column(db.Text, nullable=True)
     background_music = db.Column(db.Text, nullable=True)
     background_music_volume = db.Column(db.Float, nullable=True)
+    job_status = db.Column(db.Text, nullable=True, default='WIP')
+
+    def t_data(self):
+        return {
+            'id': self.id,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'background_video': self.background_video,
+            'background_music': self.background_music,
+            'background_music_volume': self.background_music_volume,
+            'job_status': self.job_status
+        }
 
 # class VideoScriptStories(db.Model):
 #     __tablename__ = 'video_scriptstories'

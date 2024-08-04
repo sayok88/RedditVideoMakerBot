@@ -15,5 +15,5 @@ export async function load({ fetch, params }) {
 	const res2 = await fetch(`http://127.0.0.1:4000/video_config_all`);
 	const item2 = await res2.json();
 
-	return { vid_script_data: item1.response, vid_config_all: item2 };
+	return { vid_script_data: item1.response.script, vid_config_all: item2, video_data:item1.response.video };
 }

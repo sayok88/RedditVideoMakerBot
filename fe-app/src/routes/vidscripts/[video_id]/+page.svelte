@@ -6,7 +6,24 @@
 	export let data;
 	let script_data = data.vid_script_data;
 	let vid_config_all = data.vid_config_all;
-	let selected_video, selected_audio, default_voice;
+	let default_voice;
+
+	async function updateScript() {
+		if (default_voice!=null || default_voice!==undefined) {
+			for(let i = 0; i < script_data.length; i++) {
+				if(!(script_data[i].voice!=null && script_data[i].voice!==undefined)) {
+					script_data[i].voice = default_voice;
+				}
+			}
+		}
+		const response = await fetch('http://127.0.0.1:4000/update_script/'+data.video_data.id, {
+			method: 'PUT',
+			body: JSON.stringify({ script_data, video_data: data.video_data }),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+	}
 </script>
 <style>
     textarea {
@@ -36,8 +53,9 @@
 			{#each script_data as sd}
 				<textarea bind:value={sd.text}></textarea>
 				select a voice
-				<select bind:value={sd.selected_voice}>
-					<option value='Default'>Default</option>/
+				<select bind:value={sd.voice}>
+					<option value={null}>Default</option>
+					/
 					{#each vid_config_all.voices as voice}
 						<option value={voice.FriendlyName}>
 							{voice.FriendlyName}{voice.Gender}
@@ -50,7 +68,8 @@
 	<div class='item'>
 		<div class='text-column'>
 			Select a video
-			<select bind:value={selected_video}>
+			<select bind:value={data.video_data.background_video}>
+				<option value={null}>Default</option>
 				{#each Object.entries(vid_config_all.videos) as [video, vx]}
 					<option value={video}>
 						{video}
@@ -58,7 +77,9 @@
 				{/each}
 			</select>
 			Select a audio
-			<select bind:value={selected_audio}>
+			<select bind:value={data.video_data.background_music}>
+				<option value={null}>Default</option>
+				/
 				{#each Object.entries(vid_config_all.audios) as [audios, vx]}
 					<option value={audios}>
 						{audios}
@@ -67,13 +88,22 @@
 			</select>
 			Select default Voice
 			<select bind:value={default_voice}>
-					<option value='Default'>Default</option>/
-					{#each vid_config_all.voices as voice}
-						<option value={voice.FriendlyName}>
-							{voice.FriendlyName}{voice.Gender}
-						</option>
-					{/each}
-				</select>
+				<option value=null>Default</option>
+				{#each vid_config_all.voices as voice}
+					<option value={voice.FriendlyName}>
+						{voice.FriendlyName}{voice.Gender}
+					</option>
+				{/each}
+			</select>
+			Job Status
+			<select bind:value={data.video_data.job_status}>
+				<option value='Default'>Default</option>
+				<option value='WIP'>WIP</option>
+				<option value='Ready'>Ready</option>
+			</select>
+			<br />
+			BG Volume<input type='number' bind:value={data.video_data.background_music_volume} step='0.01'>
+			<button class='btn-primary' on:click={updateScript}>Save</button>
 		</div>
 	</div>
 </div>
