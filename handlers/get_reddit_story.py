@@ -2,7 +2,8 @@ from flask import render_template, request, jsonify
 from flask import Blueprint
 
 from handlers.utils import get_story, get_post_comment, get_replies, get_static_story, get_stories, \
-    create_vid_script_api, get_scripts_api, get_scripts_vid_api
+    create_vid_script_api, get_scripts_api, get_scripts_vid_api, get_video_backgrounds, get_audio_backgrounds, \
+    get_voices
 
 bp = Blueprint('handlers', __name__)
 
@@ -55,6 +56,13 @@ def get_scripts():
     page = request.args.get('page', 0, type=int)
     return {'response': get_scripts_api(page)}
 
+
 @bp.route("/get_scripts/<int:video_id>", methods=["GET"])
 def get_scripts_vid(video_id):
     return {'response': get_scripts_vid_api(video_id)}
+
+
+@bp.route("/video_config_all", methods=["GET"])
+def video_config_all():
+    return {'videos': get_video_backgrounds(), 'audios': get_audio_backgrounds(),
+            'voices': get_voices()}

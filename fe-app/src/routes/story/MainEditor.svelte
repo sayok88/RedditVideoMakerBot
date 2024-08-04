@@ -7,12 +7,14 @@
 	let showComments = false;
 	let selected_comments = [];
 	let vid_script_id;
+
 	async function fetchComments() {
 		showComments = true;
 		const response = await fetch('http://127.0.0.1:4000/get_story/' + data.thread_id + '/comments');
 		comments = await response.json();
 	}
-	async function createvidscript(){
+
+	async function createvidscript() {
 		const response = await fetch('http://127.0.0.1:4000/create_vid_script', {
 			method: 'POST',
 			body: JSON.stringify({ selected_comments, 'thread_id': data.thread_id }),
@@ -24,14 +26,13 @@
 
 	function createScript() {
 		selected_comments = [];
+		selected_comments.push({ 'datasource': data.thread_url, 'text': data.title });
 		selected_comments.push({ 'datasource': data.thread_url, 'text': data.body });
 		selected_comments.push({ 'datasource': 'Filler', 'text': 'Comments' });
 		for (let i = 0; i < comments.length; i++) {
 			let temp = fetchSelects(JSON.parse(JSON.stringify(comments[i])));
 			selected_comments.push(...temp);
 		}
-
-
 		// console.log(selected_comments);
 		selected_comments = selected_comments;
 	}
@@ -71,8 +72,6 @@
     .container {
         display: flex;
         flex-direction: row;
-        /*justify-content: flex-start;*/
-        /*flex-wrap: wrap;*/
         max-width: 100%;
     }
 
@@ -81,21 +80,17 @@
         max-width: 50%;
         display: inline-block;
         width: 100%;
-
-
     }
 </style>
 
 <div class='container'>
 	<div class='item'>
 		<div class='text-column'>
-
 		</div>
 		<div class='text-column'>
 			<h1>{data.title}</h1>
 			<textarea bind:value={data.body}></textarea>
 			<div>Comments</div>
-
 			{#each comments as comment}
 				<Comment cdata={comment} thread_id={data.thread_id} />
 			{/each}
@@ -106,12 +101,10 @@
 	</div>
 	<div class='item'>
 		<button class='btn btn-primary btn-lg' type='button' on:click={createScript}>Create Script</button>
-
 		<div class='text-column'>My script</div>
 		{#each selected_comments as comment1}
 			<div href='#'
 					 class='block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700'>
-
 				<p class='font-normal text-gray-700 dark:text-gray-400'>{comment1.text}</p>
 			</div>
 		{/each}

@@ -341,26 +341,35 @@ def get_scripts_api(page=0):
         # if story is None:
         #     continue
         # temp["story"] = story.t_data()
-        st = ScriptText.query.filter(ScriptText.index == 0, ScriptText.video_id == video_script_story.video_id).one_or_none()
+        st = ScriptText.query.filter(ScriptText.index == 0, ScriptText.video_id == video_script_story.id).one_or_none()
         if st is None:
             continue
         temp["script"] = st.text
-        temp["video_id"] = video_script_story.video_id
-        temp["story_id"] = video_script_story.story_id
+        temp["video_id"] = st.video_id
+        temp["story_id"] = st.story_id
         scripts.append(temp)
     return scripts
 
+
 def get_scripts_vid_api(video_id):
-    vss = VideoScript.query.filter(VideoScript.id == video_id)
-    stories = ScriptText.query(ScriptText.story_id).filter(ScriptText.video_id == video_id).distinct()
-    data = {}
-    for story in stories:
-        script = []
-        script_texts = ScriptText.query.filter(ScriptText.story_id==story, ScriptText.video_id == video_id).order_by(ScriptText.index)
-        for st in script_texts:
-            script.append(st.t_data())
-        data[story.story_id] = script
-    return data
+    script_texts = ScriptText.query.filter(ScriptText.video_id == video_id).order_by(
+        ScriptText.index)
+    script = []
+    for st in script_texts:
+        script.append(st.t_data())
+    return script
 
 
+def get_voices():
+    with open('./TTS/edgtts_voices.json', 'r') as f:
+        return json.load(f)
 
+
+def get_video_backgrounds():
+    with open('./utils/background_videos.json', 'r') as f:
+        return json.load(f)
+
+
+def get_audio_backgrounds():
+    with open('./utils/background_audios.json', 'r') as f:
+        return json.load(f)

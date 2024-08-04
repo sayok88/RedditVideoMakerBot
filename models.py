@@ -73,7 +73,9 @@ class VideoScript(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow())
     updated_at = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
-
+    background_video = db.Column(db.Text, nullable=True)
+    background_music = db.Column(db.Text, nullable=True)
+    background_music_volume = db.Column(db.Float, nullable=True)
 
 # class VideoScriptStories(db.Model):
 #     __tablename__ = 'video_scriptstories'
