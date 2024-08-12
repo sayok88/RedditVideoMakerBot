@@ -68,6 +68,12 @@ class Comment(db.Model):
         }
 
 
+class VS_STATUSES:
+    ready = "Ready"
+    wip = "WIP"
+    completed = "Completed"
+
+
 class VideoScript(db.Model):
     __tablename__ = 'video_scripts'
     id = db.Column(db.Integer, primary_key=True)
@@ -76,7 +82,7 @@ class VideoScript(db.Model):
     background_video = db.Column(db.Text, nullable=True)
     background_music = db.Column(db.Text, nullable=True)
     background_music_volume = db.Column(db.Float, nullable=True)
-    job_status = db.Column(db.Text, nullable=True, default='WIP')
+    job_status = db.Column(db.Text, nullable=True, default=VS_STATUSES.wip)
 
     def t_data(self):
         return {
@@ -88,6 +94,7 @@ class VideoScript(db.Model):
             'background_music_volume': self.background_music_volume,
             'job_status': self.job_status
         }
+
 
 # class VideoScriptStories(db.Model):
 #     __tablename__ = 'video_scriptstories'

@@ -10,7 +10,7 @@ from praw.models import MoreComments
 from prawcore import ResponseException
 from sqlalchemy import desc
 
-from models import Story, db, Comment, VideoScript, ScriptText
+from models import Story, db, Comment, VideoScript, ScriptText, VS_STATUSES
 from utils.ai_methods import sort_by_similarity
 from utils.console import print_substep
 from utils.gui_utils import get_config
@@ -335,7 +335,8 @@ def create_vid_script_api(thread_id, data):
 def get_scripts_api(page=0):
     per_page = 4
     offset = (page - 1) * per_page
-    vss = VideoScript.query.order_by(desc(VideoScript.created_at)).offset(offset).limit(per_page).all()
+    vss = VideoScript.query.filter(VideoScript.job_status != VS_STATUSES.completed).order_by(
+        desc(VideoScript.created_at)).offset(offset).limit(per_page)
     scripts = []
     for video_script_story in vss:
         temp = {}

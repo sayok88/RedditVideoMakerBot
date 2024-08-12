@@ -9,13 +9,14 @@ from flask import (
     redirect,
     request,
     send_from_directory,
-    url_for, render_template,g
+    url_for, render_template, g
 )
 from flask_migrate import Migrate
 from flask_cors import CORS
 
 import utils.gui_utils as gui
 from models import db
+from tasks.make_video import create_video
 
 # Set the hostname
 HOST = "localhost"
@@ -29,13 +30,19 @@ app = Flask(__name__, template_folder="GUI")
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-app.config['SQLALCHEMY_DATABASE_URI'] =\
-        'sqlite:///' + os.path.join(basedir, 'database.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = \
+    'sqlite:///' + os.path.join(basedir, 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 migrate = Migrate(app, db)
 CORS(app)
+
+
+@app.cli.command("hello")
+def hello():
+    create_video(app, db)
+
 
 # Ensure responses aren't cached
 @app.after_request
@@ -45,8 +52,12 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+
 from handlers.get_reddit_story import bp as story_bp
+
 app.register_blueprint(story_bp)
+
+
 # Display index.html
 @app.route("/")
 def index():
@@ -119,7 +130,6 @@ def results(name):
 @app.route("/voices/<path:name>")
 def voices(name):
     return send_from_directory("GUI/voices", name, as_attachment=True)
-
 
 
 # Run browser and start the app
