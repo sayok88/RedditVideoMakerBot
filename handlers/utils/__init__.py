@@ -1,4 +1,5 @@
 import json
+import math
 from datetime import datetime
 from os.path import exists
 from pathlib import Path
@@ -307,8 +308,15 @@ def get_stories(page=1):
     per_page = 10
     Story.query.all()
     offset = (page - 1) * per_page
+    count = db.session.query(Story.thread_id).count()
+    print(count)
+    total_pages = math.ceil(count / per_page)
+    if offset > count:
+        return {'stories': [], 'count': count, 'per_page': per_page,
+                'offset': offset, 'next_page': 0, 'total_pages': total_pages}
     stories = db.session.query(Story).order_by(desc(Story.created_at)).offset(offset).limit(per_page).all()
-    return {'stories': d_list(stories)}
+    return {'stories': d_list(stories), 'count': count, 'per_page': per_page,
+            'offset': offset, 'next_page': page + 1, 'total_pages': total_pages, 'page': page}
 
 
 def create_vid_script_api(thread_id, data):
@@ -345,9 +353,11 @@ def get_scripts_api(page=0):
         #     continue
         # temp["story"] = story.t_data()
         st = ScriptText.query.filter(ScriptText.index == 0, ScriptText.video_id == video_script_story.id).one_or_none()
+        st1 = ScriptText.query.filter(ScriptText.index == 1, ScriptText.video_id == video_script_story.id).one_or_none()
         if st is None:
             continue
-        temp["script"] = st.text
+        temp["title"] = st.text
+        temp["body"] = st1.text
         temp["video_id"] = st.video_id
         temp["story_id"] = st.story_id
         scripts.append(temp)

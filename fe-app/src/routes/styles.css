@@ -105,3 +105,9 @@ button:focus:not(:focus-visible) {
 	width: 1px;
 	white-space: nowrap;
 }
+.container_2 {
+        display: flex;
+        flex-direction: row;
+        max-width: 100%;
+			flex-wrap: wrap;
+    }
