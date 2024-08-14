@@ -3,7 +3,7 @@ from flask import Blueprint
 
 from handlers.utils import get_story, get_post_comment, get_replies, get_static_story, get_stories, \
     create_vid_script_api, get_scripts_api, get_scripts_vid_api, get_video_backgrounds, get_audio_backgrounds, \
-    get_voices, update_video_script, update_script_text
+    get_voices, update_video_script, update_script_text, create_multi_thread_vid_script_api
 
 bp = Blueprint('handlers', __name__)
 
@@ -46,6 +46,14 @@ def get_stories_api():
 def create_vid_script():
     data = request.get_json()
     id = create_vid_script_api(data.get("thread_id"), data.get("selected_comments"))
+    print(data)
+    response = jsonify({'vid_id': id})
+    return response
+
+@bp.route("/create_multi_thread_script", methods=["POST"])
+def create_multi_thread_script():
+    data = request.get_json()
+    id = create_multi_thread_vid_script_api(data)
     print(data)
     response = jsonify({'vid_id': id})
     return response

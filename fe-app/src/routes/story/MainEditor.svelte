@@ -3,10 +3,12 @@
 	import Comment from './Comment.svelte';
 
 	export let data;
+	export let showVideoEditor = true;
 	let comments = data.comments;
 	let showComments = false;
-	let selected_comments = [];
+	export let selected_comments = [];
 	let vid_script_id;
+	let showReplies = true;
 
 	async function fetchComments() {
 		showComments = true;
@@ -28,13 +30,23 @@
 		selected_comments = [];
 		selected_comments.push({ 'datasource': data.thread_url, 'text': data.title });
 		selected_comments.push({ 'datasource': data.thread_url, 'text': data.body });
-		selected_comments.push({ 'datasource': 'Filler', 'text': 'Comments' });
-		for (let i = 0; i < comments.length; i++) {
-			let temp = fetchSelects(JSON.parse(JSON.stringify(comments[i])));
-			selected_comments.push(...temp);
+		if (comments !== null && comments !== undefined) {
+			selected_comments.push({ 'datasource': 'Filler', 'text': 'Comments' });
+
+			for (let i = 0; i < comments.length; i++) {
+				let temp = fetchSelects(JSON.parse(JSON.stringify(comments[i])));
+				selected_comments.push(...temp);
+			}
+		}
+		if (data.additional_end_text !== null && data.additional_end_text !== undefined) {
+			selected_comments.push({ 'datasource': 'Filler', 'text': data.additional_end_text });
 		}
 		// console.log(selected_comments);
 		selected_comments = selected_comments;
+		// data.selected_comments = selected_comments;
+		// data = data;
+		// console.log(data);
+
 	}
 
 	function fetchSelects(comm_data) {
@@ -63,6 +75,12 @@
 		console.log(comm_data, comms);
 		return comms;
 	}
+
+	function toggleComment() {
+		showReplies = !showReplies;
+	}
+
+	$: item_class = showVideoEditor ? 'item-50' : 'item-100';
 </script>
 <style>
     textarea {
@@ -77,37 +95,55 @@
 
     .item {
         box-sizing: border-box;
-        max-width: 50%;
         display: inline-block;
         width: 100%;
+    }
+
+    .item-50 {
+        max-width: 50%;
+
+    }
+
+    .item-100 {
+        max-width: 100%;
+
     }
 </style>
 
 <div class='container'>
-	<div class='item'>
+	<div class='item {item_class}'>
 		<div class='text-column'>
 		</div>
 		<div class='text-column'>
 			<h1>{data.title}</h1>
+			<button class='btn btn-primary btn-lg' type='button' on:click={createScript}>Create Script</button>
 			<textarea bind:value={data.body}></textarea>
-			<div>Comments</div>
-			{#each comments as comment}
-				<Comment cdata={comment} thread_id={data.thread_id} />
-			{/each}
+			{#if showComments}
+				<button class='btn-primary' on:click={toggleComment}>
+					{#if showReplies}Hide Comments{:else}Show Comments{/if}
+				</button>
+			{/if}
+			{#if showReplies}
+				<div>Comments</div>
+				{#each comments as comment}
+					<Comment cdata={comment} thread_id={data.thread_id} />
+				{/each}
+			{/if}
 			{#if !showComments}
 				<button class='btn-primary' on:click={fetchComments}>Fetch comments</button>
 			{/if}
 		</div>
 	</div>
-	<div class='item'>
-		<button class='btn btn-primary btn-lg' type='button' on:click={createScript}>Create Script</button>
-		<div class='text-column'>My script</div>
-		{#each selected_comments as comment1}
-			<div href='#'
-					 class='block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700'>
-				<p class='font-normal text-gray-700 dark:text-gray-400'>{comment1.text}</p>
-			</div>
-		{/each}
-		<button class='btn btn-primary btn-lg' type='button' on:click={createvidscript}>Post Script</button>
-	</div>
+	{#if showVideoEditor}
+		<div class='item {item_class}'>
+			<div class='text-column'>My script</div>
+			{#each selected_comments as comment1}
+				<div href='#'
+						 class='block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700'>
+					<p class='font-normal text-gray-700 dark:text-gray-400'>{comment1.text}</p>
+				</div>
+			{/each}
+			<button class='btn btn-primary btn-lg' type='button' on:click={createvidscript}>Post Script</button>
+		</div>
+	{/if}
 </div>

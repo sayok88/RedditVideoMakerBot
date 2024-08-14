@@ -164,7 +164,7 @@ def make_final_video(
     final_audio = merge_background_audio(audio, reddit_id, volume=background_config["background_audio_volume"])
     screenshot_width = int((W * 45) // 100)
 
-    style = "FontName=Jersey 15,FontSize=20,PrimaryColour=&H00ffff00,OutlineColour=&H000000ff,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10"
+    style = "FontName=Rubik SemiBold,FontSize=20,PrimaryColour=&H00ffff00,OutlineColour=&H000000ff,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10"
     background_clip = background_clip.filter('subtitles', f"assets/temp/{reddit_id}/audio.vtt", force_style=style)
     over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/title.png")["v"].filter(
         "scale", screenshot_width, -1

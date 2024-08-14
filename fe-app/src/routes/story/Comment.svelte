@@ -36,7 +36,7 @@
 	<textarea bind:value={cdata.body}  style=" border: {selected?'2px solid red':'1px solid black'}"></textarea>
 	{#if cdata.replies.length > 0}
 		<button class='btn-primary' on:click={toggleComment}>{#if showReplies}Hide Replies{:else}Show Replies{/if}</button>
-		{/if}
+	{/if}
 	{#if cdata.replies !== undefined && cdata.replies.length > 0 && showReplies}
 		{#each cdata.replies as reply, i}
 			<svelte:self cdata={reply} thread_id={thread_id} margin={margin+10} />

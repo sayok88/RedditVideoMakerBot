@@ -340,6 +340,30 @@ def create_vid_script_api(thread_id, data):
     return vs.id
 
 
+def create_multi_thread_vid_script_api(data):
+    vs = VideoScript()
+    db.session.add(vs)
+    db.session.commit()
+    print(vs.id)
+    for st in data:
+
+        story = Story.query.filter(Story.thread_id == st).one_or_none()
+        if story is None:
+            return None
+    # vss = VideoScriptStories(video_id=vs.id, story_id=story.thread_id)
+    # db.session.add(vss)
+    # db.session.commit()
+    i = 0
+    for thread in data:
+        for st in data[thread]:
+            std = ScriptText(video_id=vs.id, text=st.get("text"), index=i, datasource=st.get("datasource"),
+                             story_id=thread)
+            i += 1
+            db.session.add(std)
+            db.session.commit()
+    return vs.id
+
+
 def get_scripts_api(page=0):
     per_page = 4
     offset = (page - 1) * per_page

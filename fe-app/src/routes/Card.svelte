@@ -35,7 +35,7 @@
 </style>
 
 <div class='card bg-gray-800 text-white '>
-	<a href='{c_link}'>
+	<a target="_self" href={c_link}>
 		<div class='container1'>
 			<h4><b>{title}</b></h4>
 			<p>{truncate(c_body, max_chars_body, 6)}</p>
