@@ -102,7 +102,15 @@
 				<option value='Ready'>Ready</option>
 			</select>
 			<br />
+			Video Orientation
+			<select bind:value={data.video_data.v_or_h_or_b}>
+				<option value='v'>Vertical</option>
+				<option value='h'>Horizontal</option>
+				<option value='b'>Both</option>
+			</select>
 			BG Volume<input type='number' bind:value={data.video_data.background_music_volume} step='0.01'>
+			Text Color<input type="color" id="favcolor" bind:value={data.video_data.back_ground_col}>
+			Border Color<input type="color" id="favcolor1" bind:value={data.video_data.border_col}>
 			<button class='btn-primary' on:click={updateScript}>Save</button>
 		</div>
 	</div>

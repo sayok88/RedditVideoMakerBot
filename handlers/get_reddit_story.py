@@ -50,6 +50,7 @@ def create_vid_script():
     response = jsonify({'vid_id': id})
     return response
 
+
 @bp.route("/create_multi_thread_script", methods=["POST"])
 def create_multi_thread_script():
     data = request.get_json()
@@ -73,7 +74,8 @@ def get_scripts_vid(video_id):
 @bp.route("/video_config_all", methods=["GET"])
 def video_config_all():
     return {'videos': get_video_backgrounds(), 'audios': get_audio_backgrounds(),
-            'voices': get_voices()}
+            'voices': get_voices(), 'video_orientations': {'v': 'Vertical', 'h': 'Horizontal', 'b': 'Both'}}
+
 
 @bp.route("/update_script/<int:video_id>", methods=["PUT"])
 def update_script(video_id):
@@ -81,4 +83,3 @@ def update_script(video_id):
     update_script_text(data['script_data'])
     update_video_script(data['video_data'])
     return {}
-

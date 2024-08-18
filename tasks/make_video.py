@@ -30,6 +30,8 @@ def create_video(app, db):
             bg_config = {
                 "video": get_background_config("video", job.background_video),
                 "audio": get_background_config("audio", job.background_music),
+                "text_color": job.convert_to_ffmeg_color(job.text_color),
+                "border_color": job.convert_to_ffmeg_color(job.text_border_color),
                 "background_audio_volume": job.background_music_volume,
             }
             download_background_video(bg_config["video"])
@@ -37,6 +39,19 @@ def create_video(app, db):
             length = create_audio(data)
             chop_background(bg_config, length, data)
             length = math.ceil(length)
+            portrait = {'height': 1920, 'width': 1080, 'name': 'portrait'}
+            landscape = {'height': 1080, 'width': 1920, 'name': 'landscape'}
+            video_orientations = []
+            if job.v_or_h_or_b == 'b':
+                video_orientations.append(
+                    portrait
+                )
+                video_orientations.append(landscape)
+            elif job.v_or_h_or_b == 'h':
+                video_orientations.append(landscape)
+            else:
+                video_orientations.append(portrait)
+            bg_config["video_orientations"] = video_orientations
             make_final_video(length, data, bg_config)
             job.job_status = VS_STATUSES.completed
             db.session.add(job)

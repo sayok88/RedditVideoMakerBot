@@ -81,8 +81,8 @@ def name_normalize(name: str) -> str:
         return name
 
 
-def prepare_background(reddit_id: str, W: int, H: int) -> str:
-    output_path = f"assets/temp/{reddit_id}/background_noaudio.mp4"
+def prepare_background(reddit_id: str, W: int, H: int, name: str = "") -> str:
+    output_path = f"assets/temp/{reddit_id}/background_noaudio{name}.mp4"
     # return output_path
     output = (
         ffmpeg.input(f"assets/temp/{reddit_id}/background.mp4")
@@ -140,8 +140,8 @@ def make_final_video(
         background_config (Tuple[str, str, str, Any]): The background config to use.
     """
     # settings values
-    W: Final[int] = 1080
-    H: Final[int] = 1920
+    # W: Final[int] = 1080
+    # H: Final[int] = 1920
     use_hard_sub = True
 
     # opacity = settings.config["settings"]["opacity"]
@@ -155,94 +155,67 @@ def make_final_video(
 
     print_step("Creating the final video 🎥")
     print_step("Creating background_clip 🎥")
-
-    background_clip = ffmpeg.input(prepare_background(reddit_id, W=W, H=H))
-
-    console.log(f"[bold green] Video Will Be: {length} Seconds Long")
-
     audio = ffmpeg.input(f"assets/temp/{reddit_id}/audio.mp3")
     final_audio = merge_background_audio(audio, reddit_id, volume=background_config["background_audio_volume"])
-    screenshot_width = int((W * 45) // 100)
+    for ori in background_config["video_orientations"]:
+        print(ori)
+        background_clip = ffmpeg.input(prepare_background(reddit_id, W=ori["width"], H=ori["height"], name=ori["name"]))
 
-    style = "FontName=Rubik SemiBold,FontSize=20,PrimaryColour=&H00ffff00,OutlineColour=&H000000ff,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10"
-    background_clip = background_clip.filter('subtitles', f"assets/temp/{reddit_id}/audio.vtt", force_style=style)
-    over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/title.png")["v"].filter(
-        "scale", screenshot_width, -1
-    )
-    title_dur = float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"])
-    background_clip = background_clip.overlay(
-        over_lay,
-        enable=f"between(t,0,{title_dur})",
-        x="(main_w-overlay_w)/2",
-        y="(main_h-overlay_h)/2",
-    )
-    title = re.sub(r"[^\w\s-]", "", reddit_obj[0]["text"][0])
-    idx = re.sub(r"[^\w\s-]", "", reddit_obj[0]["story_id"])
-    # title_thumb = reddit_obj["thread_title"]
+        console.log(f"[bold green] Video Will Be: {length} Seconds Long")
 
-    filename = f"{name_normalize(title)[:251]}"
-    subreddit = "FLASK"
+        screenshot_width = int((ori["width"] * 45) // 100)
+        fsize = 20
+        if ori["name"] == "landscape":
+            fsize = 30
+        style = f"FontName=Rubik SemiBold,FontSize={fsize},PrimaryColour={background_config['text_color']},OutlineColour={background_config['border_color']},BackColour=&H80000000,Bold=1,Italic=0,Alignment=10"
+        background_clip = background_clip.filter('subtitles', f"assets/temp/{reddit_id}/audio.vtt", force_style=style)
+        over_lay = ffmpeg.input(f"assets/temp/{reddit_id}/png/title.png")["v"].filter(
+            "scale", screenshot_width, -1
+        )
+        title_dur = float(ffmpeg.probe(f"assets/temp/{reddit_id}/mp3/title.mp3")["format"]["duration"])
+        background_clip = background_clip.overlay(
+            over_lay,
+            enable=f"between(t,0,{title_dur})",
+            x="(main_w-overlay_w)/2",
+            y="(main_h-overlay_h)/2",
+        )
+        title = re.sub(r"[^\w\s-]", "", reddit_obj[0]["text"][0])
+        idx = re.sub(r"[^\w\s-]", "", reddit_obj[0]["story_id"])
+        # title_thumb = reddit_obj["thread_title"]
 
-    if not exists(f"./results/{subreddit}"):
-        print_substep("The 'results' folder could not be found so it was automatically created.")
-        os.makedirs(f"./results/{subreddit}")
+        filename = f"{name_normalize(title)[:240]}{ori['name']}"
+        subreddit = "FLASK"
 
-    if not exists(f"./results/{subreddit}/OnlyTTS") and allowOnlyTTSFolder:
-        print_substep("The 'OnlyTTS' folder could not be found so it was automatically created.")
-        os.makedirs(f"./results/{subreddit}/OnlyTTS")
+        if not exists(f"./results/{subreddit}"):
+            print_substep("The 'results' folder could not be found so it was automatically created.")
+            os.makedirs(f"./results/{subreddit}")
 
-    # create a thumbnail for the video
+        if not exists(f"./results/{subreddit}/OnlyTTS") and allowOnlyTTSFolder:
+            print_substep("The 'OnlyTTS' folder could not be found so it was automatically created.")
+            os.makedirs(f"./results/{subreddit}/OnlyTTS")
 
-    print_step("Rendering the video 🎥")
-    from tqdm import tqdm
+        # create a thumbnail for the video
 
-    pbar = tqdm(total=100, desc="Progress: ", bar_format="{l_bar}{bar}", unit=" %")
+        print_step("Rendering the video 🎥")
+        from tqdm import tqdm
 
-    def on_update_example(progress) -> None:
-        status = round(progress * 100, 2)
-        old_percentage = pbar.n
-        pbar.update(status - old_percentage)
+        pbar = tqdm(total=100, desc="Progress: ", bar_format="{l_bar}{bar}", unit=" %")
 
-    defaultPath = f"results/{subreddit}"
-    with ProgressFfmpeg(length, on_update_example) as progress:
-        path = defaultPath + f"/{filename}"
-        path = (
-                path[:251] + ".mp4"
-        )  # Prevent a error by limiting the path length, do not change this.
-        try:
-            ffmpeg.output(
-                background_clip,
-                final_audio,
-                path,
-                f="mp4",
-                **{
-                    "c:v": "h264",
-                    "b:v": "20M",
-                    "b:a": "192k",
-                    "threads": multiprocessing.cpu_count(),
-                },
-            ).overwrite_output().global_args("-progress", progress.output_file.name).run(
-                quiet=True,
-                overwrite_output=True,
-                capture_stdout=False,
-                capture_stderr=False,
-            )
-        except ffmpeg.Error as e:
-            print(e.stderr.decode("utf8"))
-            exit(1)
-    old_percentage = pbar.n
-    pbar.update(100 - old_percentage)
-    if allowOnlyTTSFolder:
-        path = defaultPath + f"/OnlyTTS/{filename}"
-        path = (
-                path[:251] + ".mp4"
-        )  # Prevent a error by limiting the path length, do not change this.
-        print_step("Rendering the Only TTS Video 🎥")
+        def on_update_example(progress) -> None:
+            status = round(progress * 100, 2)
+            old_percentage = pbar.n
+            pbar.update(status - old_percentage)
+
+        defaultPath = f"results/{subreddit}"
         with ProgressFfmpeg(length, on_update_example) as progress:
+            path = defaultPath + f"/{filename}"
+            path = (
+                    path[:251] + ".mp4"
+            )  # Prevent a error by limiting the path length, do not change this.
             try:
                 ffmpeg.output(
                     background_clip,
-                    audio,
+                    final_audio,
                     path,
                     f="mp4",
                     **{
@@ -257,15 +230,45 @@ def make_final_video(
                     capture_stdout=False,
                     capture_stderr=False,
                 )
-
             except ffmpeg.Error as e:
                 print(e.stderr.decode("utf8"))
                 exit(1)
-
         old_percentage = pbar.n
         pbar.update(100 - old_percentage)
-    pbar.close()
-    save_data(subreddit, filename + ".mp4", title, idx, background_config["video"][2])
+        if allowOnlyTTSFolder:
+            path = defaultPath + f"/OnlyTTS/{filename}"
+            path = (
+                    path[:251] + ".mp4"
+            )  # Prevent a error by limiting the path length, do not change this.
+            print_step("Rendering the Only TTS Video 🎥")
+            with ProgressFfmpeg(length, on_update_example) as progress:
+                try:
+                    ffmpeg.output(
+                        background_clip,
+                        audio,
+                        path,
+                        f="mp4",
+                        **{
+                            "c:v": "h264",
+                            "b:v": "20M",
+                            "b:a": "192k",
+                            "threads": multiprocessing.cpu_count(),
+                        },
+                    ).overwrite_output().global_args("-progress", progress.output_file.name).run(
+                        quiet=True,
+                        overwrite_output=True,
+                        capture_stdout=False,
+                        capture_stderr=False,
+                    )
+
+                except ffmpeg.Error as e:
+                    print(e.stderr.decode("utf8"))
+                    exit(1)
+
+            old_percentage = pbar.n
+            pbar.update(100 - old_percentage)
+        pbar.close()
+        save_data(subreddit, filename + ".mp4", title, idx, background_config["video"][2])
     print_step("Removing temporary files 🗑")
     cleanups = cleanup(reddit_id)
     print_substep(f"Removed {cleanups} temporary files 🗑")

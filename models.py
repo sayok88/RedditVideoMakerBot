@@ -83,6 +83,26 @@ class VideoScript(db.Model):
     background_music = db.Column(db.Text, nullable=True)
     background_music_volume = db.Column(db.Float, nullable=True)
     job_status = db.Column(db.Text, nullable=True, default=VS_STATUSES.wip)
+    back_ground_col = db.Column(db.Text, nullable=True, default="000000")
+    border_col = db.Column(db.Text, nullable=True, default="0000ff")
+    v_or_h_or_b = db.Column(db.Text, nullable=True, default="v")
+
+    @property
+    def text_color(self):
+        return self.back_ground_col if self.back_ground_col is not None else '000000'
+
+    def convert_to_ffmeg_color(self, color):
+        color = color.replace('#', '')
+        if len(color) == 6:
+            r = color[0:2]
+            g = color[2:4]
+            b = color[4:6]
+            return f"&H00{b}{g}{r}"
+        return f"&H00000000"
+
+    @property
+    def text_border_color(self):
+        return self.border_col if self.border_col is not None else '0000ff'
 
     def t_data(self):
         return {
@@ -92,7 +112,10 @@ class VideoScript(db.Model):
             'background_video': self.background_video,
             'background_music': self.background_music,
             'background_music_volume': self.background_music_volume,
-            'job_status': self.job_status
+            'job_status': self.job_status,
+            'back_ground_col': '#' + self.text_color,
+            'border_col': "#" + self.text_border_color,
+            'v_or_h_or_b': self.v_or_h_or_b,
         }
 
 
